@@ -9,16 +9,16 @@ branding:
 
 # Define your inputs here.
 inputs:
-  milliseconds:
+  apiKey:
     description: Your input description here
     required: true
-    default: '1000'
+    default: ''
 
 # Define your outputs here.
 outputs:
-  time:
+  files:
     description: Your output description here
 
 runs:
-  using: node24
+  using: node20
   main: dist/index.js
