@@ -8,15 +8,26 @@ import typescript from '@rollup/plugin-typescript'
 const config = {
   input: 'src/index.ts',
   output: {
-    esModule: true,
     dir: 'dist',
-    format: 'es',
-    sourcemap: true
+    format: 'cjs',
+    sourcemap: true,
+    exports: 'auto'
   },
+  external: [
+    '@prisma/schema-engine-wasm',
+    '@prisma/prisma-schema-wasm',
+    'vitest'
+  ],
   plugins: [
     typescript(),
-    nodeResolve({ preferBuiltins: true }),
-    commonjs(),
+    nodeResolve({ 
+      preferBuiltins: true,
+      exportConditions: ['node']
+    }),
+    commonjs({
+      ignoreDynamicRequires: true,
+      transformMixedEsModules: true
+    }),
     json()
   ]
 }
