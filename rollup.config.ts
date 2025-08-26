@@ -14,11 +14,6 @@ const config = {
     sourcemap: true,
     exports: 'auto'
   },
-  external: [
-    '@actions/core',
-    '@actions/github',
-    'vitest'
-  ],
   plugins: [
     typescript(),
     nodeResolve({ 
