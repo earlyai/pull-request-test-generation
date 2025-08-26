@@ -1,6 +1,7 @@
 // See: https://rollupjs.org/introduction/
 
 import commonjs from '@rollup/plugin-commonjs'
+import copy from 'rollup-plugin-copy'
 import json from '@rollup/plugin-json'
 import nodeResolve from '@rollup/plugin-node-resolve'
 import typescript from '@rollup/plugin-typescript'
@@ -14,8 +15,8 @@ const config = {
     exports: 'auto'
   },
   external: [
-    '@prisma/schema-engine-wasm',
-    '@prisma/prisma-schema-wasm',
+    '@actions/core',
+    '@actions/github',
     'vitest'
   ],
   plugins: [
@@ -27,6 +28,18 @@ const config = {
     commonjs({
       ignoreDynamicRequires: true,
       transformMixedEsModules: true
+    }),
+    copy({
+      targets: [
+        {
+          src: 'node_modules/@prisma/prisma-schema-wasm/src/prisma_schema_build_bg.wasm',
+          dest: 'dist'
+        },
+        {
+          src: 'node_modules/@prisma/schema-engine-wasm/schema_engine_bg.wasm',
+          dest: 'dist'
+        }
+      ]
     }),
     json()
   ]
