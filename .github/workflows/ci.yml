@@ -60,8 +60,6 @@ jobs:
 
       - name: Install Dependencies
         id: install
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm i jest ts-jest ts-jest-resolver
 
       - name: Test Local Action
