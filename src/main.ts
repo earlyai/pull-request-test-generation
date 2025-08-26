@@ -1,8 +1,8 @@
 import * as core from '@actions/core'
 import { TsScoutService } from '@early/ts-scout'
-import { GitHubService } from './services/github/github.service.js'
 import { CoverageAnalysisService } from './services/coverage/coverage.service.js'
 import { ConfigService } from './services/config/config.service.js'
+import { ChangedFilesService } from './services/github/changed-files.service.js'
 import type { TestableFilterConfig } from './services/coverage/coverage.types.js'
 
 /**
@@ -33,97 +33,106 @@ export async function run(): Promise<void> {
     // Initialize services
     const scoutService = new TsScoutService()
     const coverageAnalysisService = new CoverageAnalysisService()
+    const changedFilesService = new ChangedFilesService()
 
     // Generate coverage data
     await scoutService.generateCoverage()
     const coverageTree = await scoutService.getCoverageTree()
+    core.debug(JSON.stringify(coverageTree, null, 2))
 
     if (!coverageTree) {
       throw new Error('Failed to generate coverage tree')
     }
 
-    // Initialize GitHub service if token is available
-    let githubService: GitHubService | null = null
+    // Get changed files from PR if token is available
     if (githubToken) {
-      try {
-        githubService = new GitHubService(githubToken)
+      const changedFilesResult =
+        await changedFilesService.getChangedFilesFromPR(githubToken)
 
-        // Check if running in PR context and get changed files
-        if (githubService.isPullRequestContext()) {
-          const prNumber = githubService.getPullRequestNumber()
-          core.info(`Running in pull request context: #${prNumber}`)
+      if (changedFilesResult.success && changedFilesResult.data) {
+        const { data: changedFilesData, isMock } = changedFilesResult
 
-          const changedFilesResult = await githubService.getChangedFiles()
-          core.info(
-            `Found ${changedFilesResult.totalProcessed} changed files, ${changedFilesResult.filteredCount} relevant files`
-          )
-
-          // Set basic outputs for other workflow steps
-          core.setOutput(
-            'changed-files-count',
-            changedFilesResult.filteredCount.toString()
-          )
-          core.setOutput(
-            'total-files-count',
-            changedFilesResult.totalProcessed.toString()
-          )
-          core.setOutput('changed-files', changedFilesResult.files.join(','))
-
-          // Analyze coverage for changed files
-          const filterConfig: TestableFilterConfig = {
-            coverageThreshold: config.coverageThreshold,
-            includeNullCoverage: true,
-            includeZeroCoverage: true
-          }
-
-          const filteredTestablesResult =
-            await coverageAnalysisService.analyzeChangedFiles(
-              coverageTree,
-              changedFilesResult.files,
-              filterConfig
-            )
-
-          // Set coverage analysis outputs
-          core.setOutput(
-            'low-coverage-testables-count',
-            filteredTestablesResult.filteredCount.toString()
-          )
-          core.setOutput(
-            'total-testables-analyzed',
-            filteredTestablesResult.totalAnalyzed.toString()
-          )
-          core.setOutput(
-            'files-with-coverage',
-            filteredTestablesResult.filesWithCoverage.toString()
-          )
-          core.setOutput(
-            'files-without-coverage',
-            filteredTestablesResult.filesWithoutCoverage.toString()
-          )
-
-          // Set detailed testables output (JSON format for complex data)
-          core.setOutput(
-            'low-coverage-testables',
-            JSON.stringify(filteredTestablesResult.testables)
-          )
-
-          // Log the changed files for debugging
-          core.debug(
-            `Changed files: ${JSON.stringify(changedFilesResult.files, null, 2)}`
-          )
-          core.debug(
-            `Coverage analysis: ${JSON.stringify(filteredTestablesResult, null, 2)}`
-          )
-        } else {
-          core.info(
-            'Not running in pull request context, skipping file analysis'
-          )
+        // Log whether mock data was used
+        if (isMock) {
+          core.info('Using mock data for changed files analysis')
         }
-      } catch (error) {
-        core.warning(
-          `Failed to analyze PR files: ${error instanceof Error ? error.message : 'Unknown error'}`
+
+        // Set basic outputs for other workflow steps
+        core.setOutput(
+          'changed-files-count',
+          changedFilesData.filteredCount.toString()
         )
-        // Continue with the action even if PR analysis fails
+        core.setOutput(
+          'total-files-count',
+          changedFilesData.totalProcessed.toString()
+        )
+        core.setOutput('changed-files', changedFilesData.files.join(','))
+
+        // Set mock indicator output
+        core.setOutput('is-mock-data', isMock.toString())
+
+        // Analyze coverage for changed files
+        const filterConfig: TestableFilterConfig = {
+          coverageThreshold: config.coverageThreshold,
+          includeNullCoverage: true,
+          includeZeroCoverage: true
+        }
+
+        const filteredTestablesResult =
+          await coverageAnalysisService.analyzeChangedFiles(
+            coverageTree,
+            changedFilesData.files,
+            filterConfig
+          )
+
+        // Set coverage analysis outputs
+        core.setOutput(
+          'low-coverage-testables-count',
+          filteredTestablesResult.filteredCount.toString()
+        )
+        core.setOutput(
+          'total-testables-analyzed',
+          filteredTestablesResult.totalAnalyzed.toString()
+        )
+        core.setOutput(
+          'files-with-coverage',
+          filteredTestablesResult.filesWithCoverage.toString()
+        )
+        core.setOutput(
+          'files-without-coverage',
+          filteredTestablesResult.filesWithoutCoverage.toString()
+        )
+
+        // Set detailed testables output (JSON format for complex data)
+        core.setOutput(
+          'low-coverage-testables',
+          JSON.stringify(filteredTestablesResult.testables)
+        )
+
+        // Log the changed files for debugging
+        core.debug(
+          `Changed files: ${JSON.stringify(changedFilesData.files, null, 2)}`
+        )
+        core.debug(
+          `Coverage analysis: ${JSON.stringify(filteredTestablesResult, null, 2)}`
+        )
+      } else {
+        // Handle failure cases
+        if (changedFilesResult.error) {
+          if (
+            changedFilesResult.error.includes(
+              'Not running in pull request context'
+            )
+          ) {
+            core.info(
+              'Not running in pull request context, skipping file analysis'
+            )
+          } else {
+            core.warning(
+              `Failed to get changed files: ${changedFilesResult.error}`
+            )
+          }
+        }
       }
     }
 

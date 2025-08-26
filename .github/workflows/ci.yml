@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
 
 jobs:
   test-typescript:
@@ -25,11 +26,15 @@ jobs:
         id: setup-node
         uses: actions/setup-node@v4
         with:
+          registry-url: https://npm.pkg.github.com
+          scope: '@earlyai'
           node-version-file: .node-version
           cache: npm
 
       - name: Install Dependencies
-        id: npm-ci
+        id: install
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npm ci
 
       - name: Check Format
@@ -57,7 +62,7 @@ jobs:
         id: test-action
         uses: ./
         with:
-          milliseconds: 2000
+          apiKey: 123
 
       - name: Print Output
         id: output
