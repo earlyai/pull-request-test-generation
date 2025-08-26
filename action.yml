@@ -1,5 +1,5 @@
-name: The name of your action here
-description: Provide a description here
+name: TypeScript Agent Action
+description: GitHub Action for TypeScript analysis and PR file detection
 author: Your name or organization here
 
 # Add your action's branding here. This will appear on the GitHub Marketplace.
@@ -13,11 +13,64 @@ inputs:
     description: Your input description here
     required: true
     default: ''
+  test-structure:
+    description: Test file structure (siblingFolder or rootFolder)
+    required: false
+    default: 'siblingFolder'
+  test-framework:
+    description: Test framework to use (jest, mocha, or vitest)
+    required: false
+    default: 'jest'
+  test-suffix:
+    description: Test file suffix (spec or test)
+    required: false
+    default: 'spec'
+  test-file-name:
+    description: Test file naming convention (camelCase or kebabCase)
+    required: false
+    default: 'camelCase'
+  calculate-coverage:
+    description: Whether to calculate coverage (on or off)
+    required: false
+    default: 'on'
+  coverage-threshold:
+    description: Coverage threshold percentage (0-100)
+    required: false
+    default: '0'
+  scout-concurrency:
+    description: Number of concurrent scout processes (1-50)
+    required: false
+    default: '5'
+  githubToken:
+    description:
+      GitHub token for accessing PR information (defaults to GITHUB_TOKEN)
+    required: false
+    default: ''
 
 # Define your outputs here.
 outputs:
   files:
     description: Your output description here
+  changed-files-count:
+    description: Number of relevant changed files in the PR
+  total-files-count:
+    description: Total number of changed files in the PR
+  changed-files:
+    description: Comma-separated list of changed file paths
+  low-coverage-testables-count:
+    description: Number of testables with low coverage (below threshold)
+  total-testables-analyzed:
+    description: Total number of testables analyzed across changed files
+  files-with-coverage:
+    description: Number of changed files that have coverage data
+  files-without-coverage:
+    description: Number of changed files without coverage data
+  low-coverage-testables:
+    description:
+      JSON array of testables with low coverage including name, percentage, file
+      path, and reason
+  time:
+    description: Timestamp when the action completed
 
 runs:
   using: node20

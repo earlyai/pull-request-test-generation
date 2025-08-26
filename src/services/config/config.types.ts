@@ -65,28 +65,74 @@ export type RequestSource = ObjectValues<typeof REQUEST_SOURCE>
 export type ScoutConcurrency = ObjectValues<typeof SCOUT_CONCURRENCY>
 
 export const ConfigSchema = z.object({
-  testStructure: z.enum([
-    TEST_STRUCTURE_VARIANT.SIBLING_FOLDER,
-    TEST_STRUCTURE_VARIANT.ROOT_FOLDER
-  ]),
-  testFramework: z.enum([
-    TEST_FRAMEWORK.JEST,
-    TEST_FRAMEWORK.MOCHA,
-    TEST_FRAMEWORK.VITEST
-  ]),
-  testSuffix: z.enum([TEST_SUFFIX.SPEC, TEST_SUFFIX.TEST]),
-  testFileName: z.enum([TEST_FILE_NAME.CAMEL_CASE, TEST_FILE_NAME.KEBAB_CASE]),
-  testAutoRefreshCoverage: z.enum(['on', 'off']),
-  calculateCoverage: z.enum(['on', 'off']),
+  testStructure: z
+    .string()
+    .default('siblingFolder')
+    .pipe(
+      z.enum([
+        TEST_STRUCTURE_VARIANT.SIBLING_FOLDER,
+        TEST_STRUCTURE_VARIANT.ROOT_FOLDER
+      ])
+    ),
+  testFramework: z
+    .string()
+    .default('jest')
+    .pipe(
+      z.enum([TEST_FRAMEWORK.JEST, TEST_FRAMEWORK.MOCHA, TEST_FRAMEWORK.VITEST])
+    ),
+  testSuffix: z
+    .string()
+    .default('spec')
+    .pipe(z.enum([TEST_SUFFIX.SPEC, TEST_SUFFIX.TEST])),
+  testFileName: z
+    .string()
+    .default('camelCase')
+    .pipe(z.enum([TEST_FILE_NAME.CAMEL_CASE, TEST_FILE_NAME.KEBAB_CASE])),
+  calculateCoverage: z
+    .string()
+    .default('on')
+    .pipe(z.enum(['on', 'off'])),
   coverageThreshold: z
     .string()
+    .default('0')
     .transform((value) => Number.parseInt(value, 10))
     .pipe(z.number().min(COVERAGE_THRESHOLD.MIN).max(COVERAGE_THRESHOLD.MAX)),
-  requestSource: z.enum([REQUEST_SOURCE.CLI]),
+  requestSource: z.literal('CLI'),
   scoutConcurrency: z
     .string()
+    .default('5')
     .transform((value) => Number.parseInt(value, 10))
     .pipe(z.number().min(SCOUT_CONCURRENCY.MIN).max(SCOUT_CONCURRENCY.MAX))
 })
 
 export type Config = z.infer<typeof ConfigSchema>
+
+/**
+ * Configuration service interface for retrieving and validating configuration
+ */
+export interface IConfigService {
+  /**
+   * Gets the validated configuration from GitHub Actions inputs
+   * @returns Promise resolving to validated configuration
+   */
+  getConfig(): Promise<Config>
+
+  /**
+   * Gets a specific configuration value by key
+   * @param key The configuration key
+   * @returns The configuration value or undefined if not found
+   */
+  getConfigValue<K extends keyof Config>(key: K): Config[K] | undefined
+
+  /**
+   * Checks if the configuration is valid
+   * @returns True if configuration is valid, false otherwise
+   */
+  isValid(): boolean
+
+  /**
+   * Gets validation errors if any
+   * @returns Array of validation error messages
+   */
+  getValidationErrors(): readonly string[]
+}
