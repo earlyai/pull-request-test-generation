@@ -58,15 +58,6 @@ jobs:
         id: checkout
         uses: actions/checkout@v5
 
-      - name: Setup Node.js
-        id: setup-node
-        uses: actions/setup-node@v4
-        with:
-          registry-url: https://npm.pkg.github.com
-          scope: '@earlyai'
-          node-version-file: .node-version
-          cache: npm
-
       - name: Install Dependencies
         id: install
         env:
