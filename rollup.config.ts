@@ -16,7 +16,7 @@ const config = {
   },
   plugins: [
     typescript(),
-    nodeResolve({ 
+    nodeResolve({
       preferBuiltins: true,
       exportConditions: ['node']
     }),
