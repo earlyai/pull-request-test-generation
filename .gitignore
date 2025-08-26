@@ -103,3 +103,4 @@ __tests__/runner/*
 
 .cursor
 .early.coverage
+!early-ts-scout-0.0.1.tgz
