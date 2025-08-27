@@ -35,8 +35,6 @@ jobs:
         id: setup-node
         uses: actions/setup-node@v4
         with:
-          registry-url: https://npm.pkg.github.com
-          scope: '@earlyai'
           node-version-file: .node-version
           cache: npm
 
@@ -48,6 +46,8 @@ jobs:
 
       - name: Build dist/ Directory
         id: build
+        env:
+          NODE_OPTIONS: '--max-old-space-size=4096'
         run: npm run bundle
 
       # This will fail the workflow if the `dist/` directory is different than
