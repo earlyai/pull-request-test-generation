@@ -1,6 +1,7 @@
 import * as core from '@actions/core'
 import type { IConfigService, Config } from './config.types.js'
 import { ConfigSchema } from './config.types.js'
+import { GlobalConfigService, type GlobalConfigInterface } from '@early/ts-scout'
 
 /**
  * Configuration service for retrieving and validating GitHub Actions configuration
@@ -94,6 +95,36 @@ export class ConfigService implements IConfigService {
       requestSource: 'CLI', // Fixed value for GitHub Actions
       scoutConcurrency: core.getInput('scout-concurrency')
     }
+  }
+
+  /**
+   * Creates GlobalConfigService for ts-scout from current config
+   * @returns GlobalConfigInterface implementation
+   */
+  public createGlobalConfig(): GlobalConfigInterface {
+    if (!this.config) {
+      throw new Error('Config not initialized. Call getConfig() first.')
+    }
+
+    return new GlobalConfigService({
+      rootPath: process.cwd(),
+      testStructure: this.config.testStructure,
+      testFramework: this.config.testFramework,
+      testSuffix: this.config.testSuffix,
+      testFileName: this.config.testFileName,
+      coverageThreshold: this.config.coverageThreshold,
+      concurrency: this.config.scoutConcurrency,
+      calculateCoverage: this.config.calculateCoverage,
+      requestSource: this.config.requestSource,
+      gitURL: process.env.GITHUB_REPOSITORY ? `https://github.com/${process.env.GITHUB_REPOSITORY}` : '',
+      llmModelName: 'gpt-4',
+      llmTemperature: 0.7,
+      llmTopP: 1,
+      clientSource: 'CLI',
+      backendURL: process.env.BACKEND_URL || '',
+      firebaseWebApiKey: process.env.FIREBASE_WEB_API_KEY || '',
+      exchangeEndpoint: process.env.EXCHANGE_ENDPOINT || ''
+    })
   }
 
   /**

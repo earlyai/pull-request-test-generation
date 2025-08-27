@@ -30,8 +30,8 @@ export async function run(): Promise<void> {
       core.warning('No GitHub token provided, skipping PR file analysis')
     }
 
-    // Initialize services
-    const scoutService = new TsScoutService()
+    // Initialize services with real config
+    const scoutService = new TsScoutService(configService.createGlobalConfig())
     const coverageAnalysisService = new CoverageAnalysisService()
     const changedFilesService = new ChangedFilesService()
 
