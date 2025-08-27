@@ -1,9 +1,9 @@
 import * as core from '@actions/core'
-import { TsScoutService } from '@early/ts-scout'
-import { CoverageAnalysisService } from './services/coverage/coverage.service.js'
+import { TsScoutService } from '@earlyai/ts-scout'
+import { CoverageAnalysisService } from './services/coverage-analysis/coverage-analysis.service.js'
 import { ConfigService } from './services/config/config.service.js'
 import { ChangedFilesService } from './services/github/changed-files.service.js'
-import type { TestableFilterConfig } from './services/coverage/coverage.types.js'
+import type { TestableFilterConfig } from './services/coverage-analysis/coverage-analysis.types.js'
 
 /**
  * The main function for the action.
@@ -15,13 +15,10 @@ export async function run(): Promise<void> {
     // Initialize configuration service
     const configService = new ConfigService()
     const config = await configService.getConfig()
-
     // Log configuration validation results
     if (!configService.isValid()) {
       const errors = configService.getValidationErrors()
       core.error(`Configuration validation issues: ${errors.join(', ')}`)
-      core.setFailed('Configuration validation failed')
-      return
     }
 
     // Get GitHub token from inputs or environment
