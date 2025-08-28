@@ -16,7 +16,7 @@ export class FirebaseService {
   private readonly axiosInstance: AxiosInstance
   private readonly baseUrl =
     'https://identitytoolkit.googleapis.com/v1/accounts'
-  private readonly webApiKey = 'AIzaSyBvm4AkJlWDbrqBjOUzRY2LTpd2xcYIQ-s'
+  private readonly webApiKey = 'place-holder'
 
   public constructor() {
     this.axiosInstance = axios.create({
