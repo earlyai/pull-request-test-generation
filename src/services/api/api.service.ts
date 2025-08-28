@@ -11,6 +11,7 @@ import { isDefined, isEmpty } from '@earlyai/core'
 
 import { AuthService } from '@/services/auth/auth.service.js'
 import { UserInfo, UserInfoSchema } from './api.types.js'
+import { ConfigService } from '@/services/config/config.service.js'
 
 /**
  * API client for making authenticated requests to the backend
@@ -18,12 +19,15 @@ import { UserInfo, UserInfoSchema } from './api.types.js'
 export class ApiService {
   private readonly axiosInstance: AxiosInstance
   private readonly authService: AuthService
+  private readonly configService: ConfigService
 
-  public constructor(authService: AuthService) {
+  public constructor(authService: AuthService, configService: ConfigService) {
     this.authService = authService
+    this.configService = configService
 
+    //use config to get baseURL
     this.axiosInstance = axios.create({
-      baseURL: 'http://localhost:3000',
+      baseURL: this.configService.getConfigValue('baseURL'),
       headers: {
         'Content-Type': 'application/json'
       }

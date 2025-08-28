@@ -1,20 +1,37 @@
 import * as core from '@actions/core'
 import type { IConfigService, Config } from './config.types.js'
 import { ConfigSchema } from './config.types.js'
+import { isEmpty } from '@earlyai/core'
 
 /**
  * Configuration service for retrieving and validating GitHub Actions configuration
  */
 export class ConfigService implements IConfigService {
+  private static instance: ConfigService | undefined
   private config: Config | undefined
   private validationErrors: string[] = []
   private isValidConfig = false
+
+  private constructor() {
+    // Private constructor for singleton pattern
+  }
+
+  /**
+   * Gets the singleton instance of ConfigService
+   * @returns The singleton instance
+   */
+  public static getInstance(): ConfigService {
+    if (!ConfigService.instance) {
+      ConfigService.instance = new ConfigService()
+    }
+    return ConfigService.instance
+  }
 
   /**
    * Gets the validated configuration from GitHub Actions inputs
    * @returns Promise resolving to validated configuration
    */
-  public async getConfig(): Promise<Config> {
+  public getConfig(): Config {
     if (this.config) {
       return this.config
     }
@@ -45,12 +62,8 @@ export class ConfigService implements IConfigService {
         core.warning('Configuration validation failed with unknown error')
       }
 
-      // Return default configuration on validation failure
-      const defaultConfig = this.getDefaultConfig()
-      this.config = defaultConfig
-
-      core.info('Using default configuration due to validation failure')
-      return defaultConfig
+      // Let Zod handle defaults - no need for fallback config
+      throw error
     }
   }
 
@@ -84,7 +97,7 @@ export class ConfigService implements IConfigService {
    * @returns Raw configuration object
    */
   private getRawConfigFromInputs(): Record<string, string> {
-    return {
+    const config = {
       testStructure: core.getInput('test-structure'),
       testFramework: core.getInput('test-framework'),
       testSuffix: core.getInput('test-suffix'),
@@ -92,24 +105,12 @@ export class ConfigService implements IConfigService {
       calculateCoverage: core.getInput('calculate-coverage'),
       coverageThreshold: core.getInput('coverage-threshold'),
       requestSource: 'CLI', // Fixed value for GitHub Actions
-      scoutConcurrency: core.getInput('scout-concurrency')
+      scoutConcurrency: core.getInput('scout-concurrency'),
+      baseURL: core.getInput('base-url')
     }
-  }
-
-  /**
-   * Gets default configuration values (fallback for validation failures)
-   * @returns Default configuration object
-   */
-  private getDefaultConfig(): Config {
-    return {
-      testStructure: 'siblingFolder',
-      testFramework: 'jest',
-      testSuffix: 'spec',
-      testFileName: 'camelCase',
-      calculateCoverage: 'on',
-      coverageThreshold: 0,
-      requestSource: 'CLI',
-      scoutConcurrency: 5
-    }
+    //filter out empty strings
+    return Object.fromEntries(
+      Object.entries(config).filter(([, value]) => !isEmpty(value))
+    )
   }
 }

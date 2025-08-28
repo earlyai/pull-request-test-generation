@@ -102,7 +102,8 @@ export const ConfigSchema = z.object({
     .string()
     .default('5')
     .transform((value) => Number.parseInt(value, 10))
-    .pipe(z.number().min(SCOUT_CONCURRENCY.MIN).max(SCOUT_CONCURRENCY.MAX))
+    .pipe(z.number().min(SCOUT_CONCURRENCY.MIN).max(SCOUT_CONCURRENCY.MAX)),
+  baseURL: z.string().default('https://api.startearly.ai')
 })
 
 export type Config = z.infer<typeof ConfigSchema>
@@ -113,9 +114,9 @@ export type Config = z.infer<typeof ConfigSchema>
 export interface IConfigService {
   /**
    * Gets the validated configuration from GitHub Actions inputs
-   * @returns Promise resolving to validated configuration
+   * @returns Validated configuration
    */
-  getConfig(): Promise<Config>
+  getConfig(): Config
 
   /**
    * Gets a specific configuration value by key

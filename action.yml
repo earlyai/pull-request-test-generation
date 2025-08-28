@@ -41,6 +41,10 @@ inputs:
     description: Number of concurrent scout processes (1-50)
     required: false
     default: '5'
+  base-url:
+    description: Base URL for the API endpoint
+    required: false
+    default: 'https://api.startearly.ai'
   githubToken:
     description:
       GitHub token for accessing PR information (defaults to GITHUB_TOKEN)

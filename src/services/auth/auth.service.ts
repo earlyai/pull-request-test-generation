@@ -1,20 +1,24 @@
 import { isEmpty } from '@earlyai/core'
 
-import {
-  ExchangeRequest,
-  ExchangeResponseSchema
-} from '@/services/auth/auth.types.js'
-import { FirebaseService } from '@/services/auth/firebase/firebase.service.js'
+import { FirebaseService } from './firebase/firebase.service.js'
+import { ConfigService } from '@/services/config/config.service.js'
+import type { ExchangeRequest } from './auth.types.js'
+import { ExchangeResponseSchema } from './auth.types.js'
 
 /**
- * Authentication service for handling login, logout, and API communication
+ * Authentication service for managing user authentication
  */
 export class AuthService {
-  private firebaseService: FirebaseService
   private token: string | undefined
+  private readonly firebaseService: FirebaseService
+  private readonly configService: ConfigService
 
-  public constructor(firebaseService: FirebaseService) {
+  public constructor(
+    firebaseService: FirebaseService,
+    configService: ConfigService
+  ) {
     this.firebaseService = firebaseService
+    this.configService = configService
   }
 
   /**
@@ -24,8 +28,12 @@ export class AuthService {
     try {
       // Step 1: Exchange API key for Firebase custom token from backend
       console.info('Exchanging API key for Firebase custom token...')
+
+      // Get baseURL from config service
+      const baseURL = this.configService.getConfigValue('baseURL')
+
       const response = await fetch(
-        `http://localhost:3000/api/auth/sign-in-with-secret-token`,
+        `${baseURL}/api/auth/sign-in-with-secret-token`,
         {
           method: 'POST',
           headers: {

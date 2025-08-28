@@ -13,18 +13,13 @@ import type { TestableFilterConfig } from './services/coverage-analysis/coverage
 export async function run(): Promise<void> {
   try {
     // Initialize configuration service
-    const configService = new ConfigService()
-    const config = await configService.getConfig()
-    // Log configuration validation results
-    if (!configService.isValid()) {
-      const errors = configService.getValidationErrors()
-      core.error(`Configuration validation issues: ${errors.join(', ')}`)
-    }
+    const configService = ConfigService.getInstance()
+    const config = configService.getConfig()
 
     // Get GitHub token from inputs or environment
     const githubToken = core.getInput('githubToken') || process.env.GITHUB_TOKEN
     if (!githubToken) {
-      core.warning('No GitHub token provided, skipping PR file analysis')
+      throw new Error("GITHUB_TOKEN is required but not set");
     }
 
     // Initialize services
