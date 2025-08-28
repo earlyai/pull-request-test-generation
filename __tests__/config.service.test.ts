@@ -14,11 +14,17 @@ jest.mock('@actions/core', () => ({
 // Import after mocking
 import { ConfigService } from '../src/services/config/config.service.js'
 
-// Get the mocked functions
-const mockGetInput = jest.mocked(require('@actions/core').getInput)
-const mockInfo = jest.mocked(require('@actions/core').info)
-const mockDebug = jest.mocked(require('@actions/core').debug)
-const mockWarning = jest.mocked(require('@actions/core').warning)
+// Get the mocked functions using dynamic imports
+let mockGetInput: jest.MockedFunction<(key: string) => string>
+let mockInfo: jest.MockedFunction<(message: string) => void>
+let mockDebug: jest.MockedFunction<(message: string) => void>
+
+beforeAll(async () => {
+  const core = await import('@actions/core')
+  mockGetInput = jest.mocked(core.getInput)
+  mockInfo = jest.mocked(core.info)
+  mockDebug = jest.mocked(core.debug)
+})
 
 describe('ConfigService', () => {
   let originalEnv: NodeJS.ProcessEnv
@@ -240,10 +246,10 @@ describe('ConfigService', () => {
       })
 
       const configService = ConfigService.getInstance()
-      
+
       // Should throw error due to validation failure
       expect(() => configService.getConfig()).toThrow()
-      
+
       // Should not be valid
       expect(configService.isValid()).toBe(false)
       expect(configService.getValidationErrors().length).toBeGreaterThan(0)
@@ -253,14 +259,18 @@ describe('ConfigService', () => {
       const configService = ConfigService.getInstance()
       configService.getConfig()
 
-      expect(mockInfo).toHaveBeenCalledWith('Configuration validated successfully')
+      expect(mockInfo).toHaveBeenCalledWith(
+        'Configuration validated successfully'
+      )
     })
 
     it('should log configuration details in debug mode', () => {
       const configService = ConfigService.getInstance()
       configService.getConfig()
 
-      expect(mockDebug).toHaveBeenCalledWith(expect.stringContaining('Configuration:'))
+      expect(mockDebug).toHaveBeenCalledWith(
+        expect.stringContaining('Configuration:')
+      )
     })
   })
 

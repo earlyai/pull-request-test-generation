@@ -5,6 +5,8 @@ import type {
   FilteredTestable,
   TestableFilterConfig
 } from './coverage-analysis.types.js'
+import { CoverageReport } from '@earlyai/ts-scout'
+import { CoverageReaderFileReport } from '@earlyai/ts-scout/dist/services/test-framework/coverage/coverage.types.js'
 
 /**
  * Service for analyzing coverage data and filtering testables based on coverage threshold
@@ -18,7 +20,7 @@ export class CoverageAnalysisService implements ICoverageAnalysisService {
    * @returns Promise resolving to filtered testables result
    */
   public async analyzeChangedFiles(
-    coverageTree: any,
+    coverageTree: CoverageReport,
     changedFiles: readonly string[],
     filterConfig: TestableFilterConfig
   ): Promise<FilteredTestablesResult> {
@@ -44,11 +46,11 @@ export class CoverageAnalysisService implements ICoverageAnalysisService {
             filterConfig
           )
           filteredTestables.push(...fileTestables)
-          totalAnalyzed += fileCoverage.testables.length
+          totalAnalyzed += fileCoverage.testables?.length ?? 0
 
           if (fileTestables.length > 0) {
             core.debug(
-              `File ${filePath}: ${fileTestables.length}/${fileCoverage.testables.length} testables below threshold`
+              `File ${filePath}: ${fileTestables.length}/${fileCoverage.testables?.length ?? 0} testables below threshold`
             )
           }
         } else {
@@ -102,9 +104,9 @@ export class CoverageAnalysisService implements ICoverageAnalysisService {
    * @returns File coverage data or null if not found
    */
   private findFileCoverage(
-    coverageTree: any,
+    coverageTree: CoverageReport,
     normalizedPath: string
-  ): any | null {
+  ): CoverageReaderFileReport | null {
     // Try exact match first
     if (coverageTree[normalizedPath]) {
       return coverageTree[normalizedPath]
@@ -134,17 +136,17 @@ export class CoverageAnalysisService implements ICoverageAnalysisService {
    * @returns Array of filtered testables
    */
   private filterTestablesForFile(
-    fileCoverage: any,
+    fileCoverage: CoverageReaderFileReport,
     originalFilePath: string,
     filterConfig: TestableFilterConfig
   ): FilteredTestable[] {
     const filteredTestables: FilteredTestable[] = []
 
-    for (const testable of fileCoverage.testables) {
+    for (const testable of fileCoverage.testables ?? []) {
       const shouldInclude = this.shouldIncludeTestable(testable, filterConfig)
 
       if (shouldInclude) {
-        const reason = this.getFilterReason(testable, filterConfig)
+        const reason = this.getFilterReason(testable)
         filteredTestables.push({
           name: testable.name,
           percentage: testable.percentage,
@@ -191,13 +193,11 @@ export class CoverageAnalysisService implements ICoverageAnalysisService {
   /**
    * Gets the reason why a testable was filtered
    * @param testable The testable that was filtered
-   * @param filterConfig The filtering configuration
    * @returns The filter reason
    */
-  private getFilterReason(
-    testable: { percentage: number | null },
-    filterConfig: TestableFilterConfig
-  ): FilteredTestable['reason'] {
+  private getFilterReason(testable: {
+    percentage: number | null
+  }): FilteredTestable['reason'] {
     if (testable.percentage === null) {
       return 'no-coverage'
     }

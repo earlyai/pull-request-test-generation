@@ -19,7 +19,7 @@ export async function run(): Promise<void> {
     // Get GitHub token from inputs or environment
     const githubToken = core.getInput('githubToken') || process.env.GITHUB_TOKEN
     if (!githubToken) {
-      throw new Error("GITHUB_TOKEN is required but not set");
+      throw new Error('GITHUB_TOKEN is required but not set')
     }
 
     // Initialize services
