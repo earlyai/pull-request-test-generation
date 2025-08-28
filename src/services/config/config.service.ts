@@ -106,7 +106,8 @@ export class ConfigService implements IConfigService {
       coverageThreshold: core.getInput('coverage-threshold'),
       requestSource: 'CLI', // Fixed value for GitHub Actions
       scoutConcurrency: core.getInput('scout-concurrency'),
-      baseURL: core.getInput('base-url')
+      baseURL: core.getInput('base-url'),
+      apiKey: core.getInput('apiKey')
     }
     //filter out empty strings
     return Object.fromEntries(

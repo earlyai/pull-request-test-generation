@@ -170,12 +170,12 @@ export class CoverageAnalysisService implements ICoverageAnalysisService {
     filterConfig: TestableFilterConfig
   ): boolean {
     // Include testables with null coverage if configured
-    if (testable.percentage === null && filterConfig.includeNullCoverage) {
+    if (testable.percentage === null) {
       return true
     }
 
     // Include testables with zero coverage if configured
-    if (testable.percentage === 0 && filterConfig.includeZeroCoverage) {
+    if (testable.percentage === 0) {
       return true
     }
 

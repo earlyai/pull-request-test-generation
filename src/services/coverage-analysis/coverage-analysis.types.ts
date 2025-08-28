@@ -40,10 +40,6 @@ export interface FilteredTestablesResult {
 export interface TestableFilterConfig {
   /** Coverage threshold percentage (0-100) */
   readonly coverageThreshold: number
-  /** Whether to include testables with null coverage */
-  readonly includeNullCoverage: boolean
-  /** Whether to include testables with zero coverage */
-  readonly includeZeroCoverage: boolean
 }
 
 /**
@@ -67,8 +63,6 @@ export interface ICoverageAnalysisService {
 /**
  * Default testable filter configuration
  */
-export const DEFAULT_TESTABLE_FILTER_CONFIG: TestableFilterConfig = {
-  coverageThreshold: 0,
-  includeNullCoverage: true,
-  includeZeroCoverage: true
+export const DEFAULT_TESTABLE_FILTER_CONFIG: Required<TestableFilterConfig> = {
+  coverageThreshold: 0
 } as const
