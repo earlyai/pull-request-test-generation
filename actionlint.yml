@@ -4,4 +4,4 @@ paths:
   .github/workflows/**/*.{yml,yaml}:
     ignore:
       - invalid runner name "node24"
-      - unpinned action reference
+      - unpinned-uses
