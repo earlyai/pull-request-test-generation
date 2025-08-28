@@ -67,6 +67,7 @@ jobs:
         uses: ./
         with:
           apiKey: 123
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Print Output
         id: output
