@@ -4,6 +4,7 @@ import { ApiService } from './services/api/api.service.js'
 import { CoverageAnalysisService } from './services/coverage-analysis/coverage-analysis.service.js'
 import { ConfigService } from './services/config/config.service.js'
 import { ChangedFilesService } from './services/github/changed-files.service.js'
+import { GitService } from './services/git/git.service.js'
 
 /**
  * The main function for the action.
@@ -24,14 +25,27 @@ export async function run(): Promise<void> {
 
     // Initialize services
     const apiService = new ApiService(configService)
+    const gitService = new GitService()
     const scoutService = new TsScoutService()
     const coverageAnalysisService = new CoverageAnalysisService()
     const changedFilesService = new ChangedFilesService()
 
     // Authenticate with the API
-
     await apiService.login()
     core.info('Successfully authenticated with the API')
+
+    // Get Git information and log start of operation
+    let workflowRunId: string | undefined
+    try {
+      const gitInfo = await gitService.getGitInfo()
+      workflowRunId = await apiService.logStartOperation(gitInfo)
+      core.info('Successfully logged workflow start')
+    } catch (error) {
+      core.warning(
+        `Failed to log workflow start: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
+      // Action continues regardless
+    }
 
     // Generate coverage data
     await scoutService.generateCoverage()
@@ -95,6 +109,19 @@ export async function run(): Promise<void> {
             )
           }
         }
+      }
+    }
+
+    // Log end of operation if we have a workflow run ID
+    if (workflowRunId) {
+      try {
+        await apiService.logEndOperation(workflowRunId)
+        core.info('Successfully logged workflow end')
+      } catch (error) {
+        core.warning(
+          `Failed to log workflow end: ${error instanceof Error ? error.message : 'Unknown error'}`
+        )
+        // Action continues regardless
       }
     }
   } catch (error) {

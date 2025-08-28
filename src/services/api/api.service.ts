@@ -11,6 +11,7 @@ import { isDefined } from '@earlyai/core'
 
 import { UserInfo, UserInfoSchema } from './api.types.js'
 import { ConfigService } from '@/services/config/config.service.js'
+import { GitInfo } from '@/services/git/git.types.js'
 
 /**
  * API client for making authenticated requests to the backend
@@ -284,5 +285,58 @@ export class ApiService {
     const response = await this.get<unknown>('api/v1/user/me')
 
     return UserInfoSchema.parse(response)
+  }
+
+  /**
+   * Logs the start of a workflow operation
+   * @param gitInfo Git repository information
+   * @returns Promise resolving to the workflow run ID
+   */
+  public async logStartOperation(gitInfo: GitInfo): Promise<string> {
+    const config = this.configService.getConfig()
+
+    // Get PR URL from GitHub context if available
+    const prUrl =
+      process.env.GITHUB_SERVER_URL &&
+      process.env.GITHUB_REPOSITORY &&
+      process.env.GITHUB_EVENT_NAME === 'pull_request'
+        ? `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/pull/${process.env.GITHUB_EVENT_PATH ? JSON.parse(process.env.GITHUB_EVENT_PATH).number : ''}`
+        : undefined
+
+    const requestData = {
+      type: 'GENERATE_TESTS',
+      owner: gitInfo.owner,
+      repo: gitInfo.repository,
+      sourceRef: gitInfo.ref_name,
+      commitSha: gitInfo.sha,
+
+      // From ConfigService
+      threshold: config.coverageThreshold,
+      testLocation: config.testStructure,
+      testNaming: config.testFileName,
+      operationStartedAt: new Date().toISOString(),
+
+      // From GitHub Context (if available)
+      prUrl
+    }
+
+    const response = await this.post<{ id: string }>(
+      'api/v1/workflows/open',
+      requestData
+    )
+    return response.id
+  }
+
+  /**
+   * Logs the end of a workflow operation
+   * @param workflowRunId The workflow run ID from the start operation
+   */
+  public async logEndOperation(workflowRunId: string): Promise<void> {
+    const requestData = {
+      workflowRunId,
+      operationEndedAt: new Date().toISOString()
+    }
+
+    await this.post('api/v1/workflows/close', requestData)
   }
 }
