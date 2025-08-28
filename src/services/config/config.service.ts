@@ -1,7 +1,6 @@
 import * as core from '@actions/core'
 import type { IConfigService, Config } from './config.types.js'
 import { ConfigSchema } from './config.types.js'
-import { GlobalConfigService, type GlobalConfigInterface } from '@early/ts-scout'
 
 /**
  * Configuration service for retrieving and validating GitHub Actions configuration
@@ -98,15 +97,15 @@ export class ConfigService implements IConfigService {
   }
 
   /**
-   * Creates GlobalConfigService for ts-scout from current config
-   * @returns GlobalConfigInterface implementation
+   * Creates TsScoutService configuration from current config
+   * @returns Configuration object for ts-scout
    */
-  public createGlobalConfig(): GlobalConfigInterface {
+  public createTsScoutConfig() {
     if (!this.config) {
       throw new Error('Config not initialized. Call getConfig() first.')
     }
 
-    return new GlobalConfigService({
+    return {
       rootPath: process.cwd(),
       testStructure: this.config.testStructure,
       testFramework: this.config.testFramework,
@@ -124,7 +123,7 @@ export class ConfigService implements IConfigService {
       backendURL: process.env.BACKEND_URL || '',
       firebaseWebApiKey: process.env.FIREBASE_WEB_API_KEY || '',
       exchangeEndpoint: process.env.EXCHANGE_ENDPOINT || ''
-    })
+    }
   }
 
   /**

@@ -28,7 +28,7 @@ export async function run(): Promise<void> {
     }
 
     // Initialize services with real config
-    const scoutService = new TsScoutService(configService.createGlobalConfig())
+    const scoutService = new TsScoutService(configService.createTsScoutConfig())
     const coverageAnalysisService = new CoverageAnalysisService()
     const changedFilesService = new ChangedFilesService()
 
