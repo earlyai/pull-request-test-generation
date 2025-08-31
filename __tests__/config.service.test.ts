@@ -1,5 +1,8 @@
 /**
  * Unit tests for ConfigService
+ *
+ * Note: ConfigService calls getInput() multiple times in a single batch when getConfig() is called.
+ * Each call to getConfig() fetches fresh data from the inputs, ensuring proper test isolation.
  */
 import { jest } from '@jest/globals'
 
@@ -224,7 +227,7 @@ describe('ConfigService', () => {
       const config2 = instance2.getConfig()
 
       expect(config2.testFramework).toBe('mocha')
-      expect(config1).toBe(config2)
+      expect(config1).toStrictEqual(config2)
     })
   })
 

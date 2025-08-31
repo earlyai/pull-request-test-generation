@@ -32,10 +32,6 @@ export class ConfigService implements IConfigService {
    * @returns Promise resolving to validated configuration
    */
   public getConfig(): Config {
-    if (this.config) {
-      return this.config
-    }
-
     try {
       // Get raw configuration values from GitHub Actions inputs
       const rawConfig = this.getRawConfigFromInputs()

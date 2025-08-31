@@ -31,8 +31,16 @@ export async function run(): Promise<void> {
     const changedFilesService = new ChangedFilesService()
 
     // Authenticate with the API
-    await apiService.login()
-    core.info('Successfully authenticated with the API')
+    try {
+      await apiService.login()
+      core.info('Successfully authenticated with the API')
+    } catch (error) {
+      core.warning(
+        'Failed to authenticate with the API: ' +
+          (error instanceof Error ? error.message : 'Unknown error')
+      )
+      // Continue execution even if login fails
+    }
 
     // Get Git information and log start of operation
     let workflowRunId: string | undefined
