@@ -50,7 +50,9 @@ jobs:
   test-action:
     name: GitHub Actions Test
     runs-on: ubuntu-latest
-    permissions: 
+    permissions:
+      contents: read
+      packages: read
       pull-requests: read
 
     steps:
