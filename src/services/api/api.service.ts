@@ -333,10 +333,9 @@ export class ApiService {
    */
   public async logEndOperation(workflowRunId: string): Promise<void> {
     const requestData = {
-      workflowRunId,
       operationEndedAt: new Date().toISOString()
     }
 
-    await this.post('api/v1/workflows/close', requestData)
+    await this.patch(`api/v1/workflows/close/${workflowRunId}`, requestData)
   }
 }
