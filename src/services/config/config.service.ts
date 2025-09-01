@@ -1,8 +1,6 @@
 import * as core from '@actions/core'
 import type { IConfigService, Config } from './config.types.js'
 import { ConfigSchema } from './config.types.js'
-import { GlobalConfigService, type GlobalConfigInterface } from '@early/ts-scout'
-import { isEmpty } from '@earlyai/core'
 
 /**
  * Configuration service for retrieving and validating GitHub Actions configuration
@@ -119,39 +117,36 @@ export class ConfigService implements IConfigService {
 
     return {
       rootPath: process.cwd(),
-      testStructure: this.config.testStructure,
+      isSiblingFolderStructured: this.config.testStructure === 'siblingFolder',
+      gitURL: process.env.GITHUB_REPOSITORY
+        ? `https://github.com/${process.env.GITHUB_REPOSITORY}`
+        : '',
       testFramework: this.config.testFramework,
-      testSuffix: this.config.testSuffix,
-      testFileName: this.config.testFileName,
-      coverageThreshold: this.config.coverageThreshold,
-      concurrency: this.config.scoutConcurrency,
-      calculateCoverage: this.config.calculateCoverage,
-      requestSource: this.config.requestSource,
-      gitURL: process.env.GITHUB_REPOSITORY ? `https://github.com/${process.env.GITHUB_REPOSITORY}` : '',
-      llmModelName: 'gpt-4',
+      greyTestBehaviour: 'keep' as const,
+      redTestBehaviour: 'keep' as const,
+      generatedTestStructure: 'categories' as const,
+      generateTestsLLMModelName: 'gpt-4',
+      isRootFolderStructured: this.config.testStructure === 'rootFolder',
       llmTemperature: 0.7,
       llmTopP: 1,
-      clientSource: 'CLI',
-      backendURL: process.env.BACKEND_URL || '',
+      clientSource: 'github-action' as const,
+      backendURL: this.config.baseURL,
+      requestSource: this.config.requestSource,
       firebaseWebApiKey: process.env.FIREBASE_WEB_API_KEY || '',
-      exchangeEndpoint: process.env.EXCHANGE_ENDPOINT || ''
-    }
-  }
-
-  /**
-   * Gets default configuration values (fallback for validation failures)
-   * @returns Default configuration object
-   */
-  private getDefaultConfig(): Config {
-    return {
-      testStructure: 'siblingFolder',
-      testFramework: 'jest',
-      testSuffix: 'spec',
-      testFileName: 'camelCase',
-      calculateCoverage: 'on',
-      coverageThreshold: 0,
-      requestSource: 'CLI',
-      scoutConcurrency: 5
+      exchangeEndpoint: process.env.EXCHANGE_ENDPOINT || 'auth/exchange',
+      userPrompt: '',
+      testLocation:
+        this.config.testStructure === 'siblingFolder' ? '__tests__' : 'tests',
+      threshold: this.config.coverageThreshold,
+      concurrency: this.config.scoutConcurrency,
+      testFileFormat: 'ts',
+      generateTestsConcurrency: this.config.scoutConcurrency,
+      outputType: 'newCodeFile' as const,
+      shouldRefreshCoverage: this.config.calculateCoverage === 'on',
+      kebabCaseFileName: this.config.testFileName === 'kebabCase',
+      earlyTestFilenameSuffix: '.early',
+      testSuffix: this.config.testSuffix,
+      isAppendPrompt: false
     }
   }
 }
