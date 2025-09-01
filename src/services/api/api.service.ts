@@ -7,23 +7,26 @@ import axios, {
 } from 'axios'
 import axiosRetry from 'axios-retry'
 
-import { isDefined, isEmpty } from '@earlyai/core'
+import { isDefined } from '@earlyai/core'
 
-import { AuthService } from '@/services/auth/auth.service.js'
 import { UserInfo, UserInfoSchema } from './api.types.js'
+import { ConfigService } from '@/services/config/config.service.js'
+import { GitInfo } from '@/services/git/git.types.js'
 
 /**
  * API client for making authenticated requests to the backend
  */
 export class ApiService {
   private readonly axiosInstance: AxiosInstance
-  private readonly authService: AuthService
+  private readonly configService: ConfigService
+  private idToken: string | undefined
 
-  public constructor(authService: AuthService) {
-    this.authService = authService
+  public constructor(configService: ConfigService) {
+    this.configService = configService
 
+    //use config to get baseURL
     this.axiosInstance = axios.create({
-      baseURL: 'http://localhost:3000',
+      baseURL: this.configService.getConfigValue('baseURL'),
       headers: {
         'Content-Type': 'application/json'
       }
@@ -48,6 +51,63 @@ export class ApiService {
   }
 
   /**
+   * Authenticates with the API using the configured API key
+   * @throws Error if authentication fails
+   */
+  public async login(): Promise<void> {
+    const apiKey = this.configService.getConfigValue('apiKey')
+    if (!apiKey) {
+      throw new Error('API key is required but not configured')
+    }
+
+    try {
+      const response = await this.axiosInstance.post(
+        'auth/v2/sign-in-with-secret-token',
+        {
+          secret: apiKey
+        }
+      )
+
+      if (response.data && response.data.idToken) {
+        this.idToken = response.data.idToken
+      } else {
+        throw new Error('Authentication response missing idToken')
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          throw new Error(
+            `Authentication failed: ${error.response.status} ${error.response.statusText}`
+          )
+        } else if (error.request) {
+          throw new Error(
+            'Authentication failed: No response received from server'
+          )
+        }
+      }
+      throw new Error(
+        `Authentication failed: ${error instanceof Error ? error.message : 'Unknown error'}`
+      )
+    }
+  }
+
+  /**
+   * Gets the authorization headers for authenticated requests
+   * @returns Headers object with authorization token if available
+   */
+  private getAuthHeaders(): Record<string, string> {
+    const headers: Record<string, string> = {
+      'x-request-source': 'CLI'
+    }
+
+    if (this.idToken) {
+      headers['authorization'] = `Bearer ${this.idToken}`
+    }
+
+    return headers
+  }
+
+  /**
    * Make a generic API call
    * Authentication is optional; if available, a token will be attached.
    */
@@ -62,19 +122,14 @@ export class ApiService {
     data?: T
     config?: AxiosRequestConfig<T>
   }): Promise<AxiosResponse<R>> {
-    let token: string | undefined
+    const authHeaders = this.getAuthHeaders()
+    const headers = new AxiosHeaders(authHeaders)
 
-    if (await this.authService.isAuthenticated()) {
-      token = await this.authService.getToken()
-    }
-
-    const headers = new AxiosHeaders({
-      'x-request-source': 'CLI',
-      ...requestConfig?.headers
-    })
-
-    if (isDefined(token) && !isEmpty(token)) {
-      headers['authorization'] = `Bearer ${token}`
+    // Add request config headers
+    if (requestConfig?.headers) {
+      Object.entries(requestConfig.headers).forEach(([key, value]) => {
+        headers.set(key, value)
+      })
     }
 
     const axiosConfig: AxiosRequestConfig<T> = {
@@ -212,20 +267,75 @@ export class ApiService {
   }
 
   public async isAuthenticated(): Promise<boolean> {
-    return this.authService.isAuthenticated()
+    return isDefined(this.idToken)
   }
 
   public async getToken(): Promise<string | undefined> {
-    return this.authService.getToken()
+    return this.idToken
   }
 
   public getBaseUrl(): string {
-    return 'http://localhost:3000'
+    return (
+      this.configService.getConfigValue('baseURL') ||
+      'https://api.startearly.ai'
+    )
   }
 
   public async getUserInfo(): Promise<UserInfo> {
     const response = await this.get<unknown>('api/v1/user/me')
 
     return UserInfoSchema.parse(response)
+  }
+
+  /**
+   * Logs the start of a workflow operation
+   * @param gitInfo Git repository information
+   * @returns Promise resolving to the workflow run ID
+   */
+  public async logStartOperation(gitInfo: GitInfo): Promise<string> {
+    const config = this.configService.getConfig()
+
+    // Get PR URL from GitHub context if available
+    const prUrl =
+      process.env.GITHUB_SERVER_URL &&
+      process.env.GITHUB_REPOSITORY &&
+      process.env.GITHUB_EVENT_NAME === 'pull_request'
+        ? `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/pull/${process.env.GITHUB_EVENT_PATH ? JSON.parse(process.env.GITHUB_EVENT_PATH).number : ''}`
+        : undefined
+
+    const requestData = {
+      type: 'GENERATE_TESTS',
+      owner: gitInfo.owner,
+      repo: gitInfo.repository,
+      sourceRef: gitInfo.ref_name,
+      commitSha: gitInfo.sha,
+
+      // From ConfigService
+      threshold: config.coverageThreshold,
+      testLocation: config.testStructure,
+      testNaming: config.testFileName,
+      operationStartedAt: new Date().toISOString(),
+
+      // From GitHub Context (if available)
+      prUrl
+    }
+
+    const response = await this.post<{ id: string }>(
+      'api/v1/workflows/open',
+      requestData
+    )
+    return response.id
+  }
+
+  /**
+   * Logs the end of a workflow operation
+   * @param workflowRunId The workflow run ID from the start operation
+   */
+  public async logEndOperation(workflowRunId: string): Promise<void> {
+    const requestData = {
+      operationEndedAt: new Date().toISOString()
+    }
+
+    await this.patch(`api/v1/workflows/close/${workflowRunId}`, requestData)
   }
 }

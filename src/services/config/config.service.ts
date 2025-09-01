@@ -2,24 +2,37 @@ import * as core from '@actions/core'
 import type { IConfigService, Config } from './config.types.js'
 import { ConfigSchema } from './config.types.js'
 import { GlobalConfigService, type GlobalConfigInterface } from '@early/ts-scout'
+import { isEmpty } from '@earlyai/core'
 
 /**
  * Configuration service for retrieving and validating GitHub Actions configuration
  */
 export class ConfigService implements IConfigService {
+  private static instance: ConfigService | undefined
   private config: Config | undefined
   private validationErrors: string[] = []
   private isValidConfig = false
+
+  private constructor() {
+    // Private constructor for singleton pattern
+  }
+
+  /**
+   * Gets the singleton instance of ConfigService
+   * @returns The singleton instance
+   */
+  public static getInstance(): ConfigService {
+    if (!ConfigService.instance) {
+      ConfigService.instance = new ConfigService()
+    }
+    return ConfigService.instance
+  }
 
   /**
    * Gets the validated configuration from GitHub Actions inputs
    * @returns Promise resolving to validated configuration
    */
-  public async getConfig(): Promise<Config> {
-    if (this.config) {
-      return this.config
-    }
-
+  public getConfig(): Config {
     try {
       // Get raw configuration values from GitHub Actions inputs
       const rawConfig = this.getRawConfigFromInputs()
@@ -46,12 +59,8 @@ export class ConfigService implements IConfigService {
         core.warning('Configuration validation failed with unknown error')
       }
 
-      // Return default configuration on validation failure
-      const defaultConfig = this.getDefaultConfig()
-      this.config = defaultConfig
-
-      core.info('Using default configuration due to validation failure')
-      return defaultConfig
+      // Let Zod handle defaults - no need for fallback config
+      throw error
     }
   }
 
@@ -93,7 +102,9 @@ export class ConfigService implements IConfigService {
       calculateCoverage: core.getInput('calculate-coverage'),
       coverageThreshold: core.getInput('coverage-threshold'),
       requestSource: 'CLI', // Fixed value for GitHub Actions
-      scoutConcurrency: core.getInput('scout-concurrency')
+      scoutConcurrency: core.getInput('scout-concurrency'),
+      baseURL: core.getInput('base-url'),
+      apiKey: core.getInput('apiKey')
     }
   }
 

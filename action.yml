@@ -10,7 +10,7 @@ branding:
 # Define your inputs here.
 inputs:
   apiKey:
-    description: Your input description here
+    description: API key for authenticating with the backend service
     required: true
     default: ''
   test-structure:
@@ -41,6 +41,10 @@ inputs:
     description: Number of concurrent scout processes (1-50)
     required: false
     default: '5'
+  base-url:
+    description: Base URL for the API endpoint
+    required: false
+    default: 'https://api.startearly.ai'
   githubToken:
     description:
       GitHub token for accessing PR information (defaults to GITHUB_TOKEN)
@@ -49,28 +53,10 @@ inputs:
 
 # Define your outputs here.
 outputs:
-  files:
-    description: Your output description here
-  changed-files-count:
-    description: Number of relevant changed files in the PR
-  total-files-count:
-    description: Total number of changed files in the PR
-  changed-files:
-    description: Comma-separated list of changed file paths
-  low-coverage-testables-count:
-    description: Number of testables with low coverage (below threshold)
-  total-testables-analyzed:
-    description: Total number of testables analyzed across changed files
-  files-with-coverage:
-    description: Number of changed files that have coverage data
-  files-without-coverage:
-    description: Number of changed files without coverage data
-  low-coverage-testables:
-    description:
-      JSON array of testables with low coverage including name, percentage, file
-      path, and reason
-  time:
-    description: Timestamp when the action completed
+  pre-coverage:
+    description: Coverage data before analysis
+  post-coverage:
+    description: Coverage data after analysis
 
 runs:
   using: node20
