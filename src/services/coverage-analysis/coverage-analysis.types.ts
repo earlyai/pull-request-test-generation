@@ -2,40 +2,7 @@
  * Types and interfaces for the coverage analysis service
  */
 
-/**
- * Represents a testable item with coverage information
- */
-export interface Testable {
-  /** The name of the testable item (function, method, etc.) */
-  readonly name: string
-  /** The coverage percentage (null if no coverage data available) */
-  readonly percentage: number | null
-}
-
-/**
- * Represents coverage data for a file
- * This matches the actual structure returned by TsScoutService
- */
-export interface FileCoverage {
-  /** The coverage percentage for the entire file */
-  readonly percentage: number | null
-  /** Array of testable items in the file */
-  readonly testables: readonly Testable[]
-}
-
-/**
- * Represents the complete coverage tree structure
- * This matches the actual structure returned by TsScoutService
- */
-export interface CoverageTree {
-  /** Coverage data keyed by file path */
-  readonly [filePath: string]: FileCoverage
-}
-
-/**
- * Type for the coverage report that can be undefined
- */
-export type CoverageReport = CoverageTree | undefined
+import { CoverageReport } from '@earlyai/ts-scout'
 
 /**
  * Represents a filtered testable with additional context
@@ -73,10 +40,6 @@ export interface FilteredTestablesResult {
 export interface TestableFilterConfig {
   /** Coverage threshold percentage (0-100) */
   readonly coverageThreshold: number
-  /** Whether to include testables with null coverage */
-  readonly includeNullCoverage: boolean
-  /** Whether to include testables with zero coverage */
-  readonly includeZeroCoverage: boolean
 }
 
 /**
@@ -91,7 +54,7 @@ export interface ICoverageAnalysisService {
    * @returns Promise resolving to filtered testables result
    */
   analyzeChangedFiles(
-    coverageTree: any,
+    coverageTree: CoverageReport,
     changedFiles: readonly string[],
     filterConfig: TestableFilterConfig
   ): Promise<FilteredTestablesResult>
@@ -100,8 +63,6 @@ export interface ICoverageAnalysisService {
 /**
  * Default testable filter configuration
  */
-export const DEFAULT_TESTABLE_FILTER_CONFIG: TestableFilterConfig = {
-  coverageThreshold: 0,
-  includeNullCoverage: true,
-  includeZeroCoverage: true
+export const DEFAULT_TESTABLE_FILTER_CONFIG: Required<TestableFilterConfig> = {
+  coverageThreshold: 0
 } as const
