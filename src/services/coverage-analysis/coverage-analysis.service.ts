@@ -5,8 +5,7 @@ import type {
   FilteredTestable,
   TestableFilterConfig
 } from './coverage-analysis.types.js'
-import { CoverageReport } from '@earlyai/ts-scout'
-import { CoverageReaderFileReport } from '@earlyai/ts-scout/dist/services/test-framework/coverage/coverage.types.js'
+import { CoverageReport, CoverageReaderFileReport } from '@earlyai/ts-scout'
 
 /**
  * Service for analyzing coverage data and filtering testables based on coverage threshold

@@ -1,5 +1,5 @@
 import * as core from '@actions/core'
-import { TsScoutService } from '@earlyai/ts-scout'
+import { createTSScout } from '@earlyai/ts-scout'
 import { ApiService } from './services/api/api.service.js'
 import { CoverageAnalysisService } from './services/coverage-analysis/coverage-analysis.service.js'
 import { ConfigService } from './services/config/config.service.js'
@@ -26,7 +26,7 @@ export async function run(): Promise<void> {
     // Initialize services
     const apiService = new ApiService(configService)
     const gitService = new GitService()
-    const scoutService = new TsScoutService()
+    const scoutService = createTSScout(configService.createTsScoutConfig())
     const coverageAnalysisService = new CoverageAnalysisService()
     const changedFilesService = new ChangedFilesService()
 
