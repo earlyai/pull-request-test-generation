@@ -282,9 +282,9 @@ enable the workflow, follow the below steps.
 1. Save and commit the changes
 
 Once complete, this workflow will run any time a pull request is created or
-changes pushed directly to `master`. If the workflow detects any dependencies with
-missing or non-compliant licenses, it will fail the workflow and provide details
-on the issue(s) found.
+changes pushed directly to `master`. If the workflow detects any dependencies
+with missing or non-compliant licenses, it will fail the workflow and provide
+details on the issue(s) found.
 
 ### Updating Licenses
 
