@@ -39,7 +39,7 @@
     "@actions/core": "^1.11.1",
     "@actions/github": "^6.0.1",
     "@earlyai/core": "^1.2.0",
-    "@earlyai/ts-scout": "^0.1.4",
+    "@earlyai/ts-scout": "^0.1.5",
     "axios": "^1.11.0",
     "axios-retry": "^4.5.0",
     "zod": "^4.1.1"
