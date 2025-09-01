@@ -1,3 +1,4 @@
+import { injectable } from 'inversify'
 import * as core from '@actions/core'
 import type { IConfigService, Config } from './config.types.js'
 import { ConfigSchema } from './config.types.js'
@@ -6,26 +7,11 @@ import { isEmpty } from '@earlyai/core'
 /**
  * Configuration service for retrieving and validating GitHub Actions configuration
  */
+@injectable()
 export class ConfigService implements IConfigService {
-  private static instance: ConfigService | undefined
   private config: Config | undefined
   private validationErrors: string[] = []
   private isValidConfig = false
-
-  private constructor() {
-    // Private constructor for singleton pattern
-  }
-
-  /**
-   * Gets the singleton instance of ConfigService
-   * @returns The singleton instance
-   */
-  public static getInstance(): ConfigService {
-    if (!ConfigService.instance) {
-      ConfigService.instance = new ConfigService()
-    }
-    return ConfigService.instance
-  }
 
   /**
    * Gets the validated configuration from GitHub Actions inputs
@@ -103,7 +89,8 @@ export class ConfigService implements IConfigService {
       requestSource: 'CLI', // Fixed value for GitHub Actions
       scoutConcurrency: core.getInput('scout-concurrency'),
       baseURL: core.getInput('base-url'),
-      apiKey: core.getInput('apiKey')
+      apiKey: core.getInput('apiKey'),
+      token: core.getInput('token') || process.env.GITHUB_TOKEN as string
     }
     //filter out empty strings
     return Object.fromEntries(

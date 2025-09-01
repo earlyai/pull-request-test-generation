@@ -1,3 +1,4 @@
+import { injectable, inject } from 'inversify'
 import axios, {
   AxiosHeaders,
   AxiosInstance,
@@ -12,16 +13,16 @@ import { isDefined } from '@earlyai/core'
 import { UserInfo, UserInfoSchema } from './api.types.js'
 import { ConfigService } from '@/services/config/config.service.js'
 import { GitInfo } from '@/services/git/git.types.js'
-
 /**
  * API client for making authenticated requests to the backend
  */
+@injectable()
 export class ApiService {
   private readonly axiosInstance: AxiosInstance
   private readonly configService: ConfigService
   private idToken: string | undefined
 
-  public constructor(configService: ConfigService) {
+  public constructor(@inject(ConfigService) configService: ConfigService) {
     this.configService = configService
 
     //use config to get baseURL

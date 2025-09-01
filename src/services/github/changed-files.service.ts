@@ -1,7 +1,7 @@
+import { injectable, inject } from 'inversify'
 import * as core from '@actions/core'
 import { GitHubService } from './github.service.js'
 import type { FilteredFilesResult } from './github.types.js'
-
 /**
  * Result of getting changed files from PR
  */
@@ -21,15 +21,17 @@ export interface ChangedFilesResult {
 /**
  * Service for retrieving changed files from pull requests with mock support
  */
+@injectable()
 export class ChangedFilesService {
+  constructor(
+    @inject(GitHubService) private readonly githubService: GitHubService
+  ) {}
+
   /**
    * Gets changed files from the current pull request
-   * @param githubToken GitHub token for authentication
    * @returns Promise resolving to changed files result
    */
-  public async getChangedFilesFromPR(
-    githubToken: string
-  ): Promise<ChangedFilesResult> {
+  public async getChangedFilesFromPR(): Promise<ChangedFilesResult> {
     try {
       // Check if we should use mock data for debugging
       if (this.shouldUseMockData()) {
@@ -37,11 +39,10 @@ export class ChangedFilesService {
         return this.getMockChangedFiles()
       }
 
-      // Initialize GitHub service
-      const githubService = new GitHubService(githubToken)
+      // GitHub service is already configured with token from ConfigService
 
       // Check if running in PR context
-      if (!githubService.isPullRequestContext()) {
+      if (!this.githubService.isPullRequestContext()) {
         return {
           success: false,
           error: 'Not running in pull request context',
@@ -50,7 +51,7 @@ export class ChangedFilesService {
       }
 
       // Get PR number and changed files
-      const prNumber = githubService.getPullRequestNumber()
+      const prNumber = this.githubService.getPullRequestNumber()
       if (!prNumber) {
         return {
           success: false,
@@ -61,7 +62,7 @@ export class ChangedFilesService {
 
       core.info(`Running in pull request context: #${prNumber}`)
 
-      const changedFilesResult = await githubService.getChangedFiles()
+      const changedFilesResult = await this.githubService.getChangedFiles()
       core.info(
         `Found ${changedFilesResult.totalProcessed} changed files, ${changedFilesResult.filteredCount} relevant files`
       )

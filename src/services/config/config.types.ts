@@ -104,7 +104,8 @@ export const ConfigSchema = z.object({
     .transform((value) => Number.parseInt(value, 10))
     .pipe(z.number().min(SCOUT_CONCURRENCY.MIN).max(SCOUT_CONCURRENCY.MAX)),
   baseURL: z.string().default('https://api.startearly.ai'),
-  apiKey: z.string().default('')
+  apiKey: z.string().default(''),
+  token: z.string()
 })
 
 export type Config = z.infer<typeof ConfigSchema>

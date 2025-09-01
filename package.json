@@ -42,6 +42,7 @@
     "@earlyai/ts-scout": "^0.0.1",
     "axios": "^1.11.0",
     "axios-retry": "^4.5.0",
+    "inversify": "^7.9.1",
     "zod": "^4.1.1"
   },
   "devDependencies": {
