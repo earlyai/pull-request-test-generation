@@ -293,15 +293,16 @@ export class ApiService {
    * @param gitInfo Git repository information
    * @returns Promise resolving to the workflow run ID
    */
-  public async logStartOperation(gitInfo: GitInfo): Promise<string> {
+  public async logStartOperation(gitInfo: GitInfo, githubContext?: {prNumber: number}): Promise<string> {
     const config = this.configService.getConfig()
 
     // Get PR URL from GitHub context if available
     const prUrl =
       process.env.GITHUB_SERVER_URL &&
       process.env.GITHUB_REPOSITORY &&
-      process.env.GITHUB_EVENT_NAME === 'pull_request'
-        ? `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/pull/${process.env.GITHUB_EVENT_PATH ? JSON.parse(process.env.GITHUB_EVENT_PATH).number : ''}`
+      process.env.GITHUB_EVENT_NAME === 'pull_request' &&
+      githubContext?.prNumber
+        ? `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/pull/${githubContext.prNumber}`
         : undefined
 
     const requestData = {

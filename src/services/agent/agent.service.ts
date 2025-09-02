@@ -7,6 +7,7 @@ import { CoverageAnalysisService } from '../coverage-analysis/coverage-analysis.
 import { ChangedFilesService } from '../github/changed-files.service.js'
 import { TYPES } from '@/container.types.js'
 import type { ITSScout } from '@/container.types.js'
+import { GitHubService } from '../github/github.service.js'
 
 /**
  * Agent service that orchestrates all other services and implements business flows
@@ -21,6 +22,7 @@ export class AgentService {
     private readonly coverageAnalysisService: CoverageAnalysisService,
     @inject(ChangedFilesService)
     private readonly changedFilesService: ChangedFilesService,
+    @inject(GitHubService) private readonly githubService: GitHubService,
     @inject(TYPES.TsScoutService) private readonly scoutService: ITSScout
   ) {}
 
@@ -65,11 +67,16 @@ export class AgentService {
 
       // Get Git information and log start of operation
       const gitInfo = await this.gitService.getGitInfo()
-      const workflowRunId = await this.apiService.logStartOperation(gitInfo)
-      core.info('Successfully logged workflow start')
-
-      // Store workflow run ID for later use
-      this.workflowRunId = workflowRunId
+      const prNumber = this.githubService.getPullRequestNumber()
+      if (prNumber) {
+        const workflowRunId = await this.apiService.logStartOperation(gitInfo, { prNumber })
+        core.info('Successfully logged workflow start')
+        this.workflowRunId = workflowRunId
+      } else {
+        const workflowRunId = await this.apiService.logStartOperation(gitInfo)
+        core.info('Successfully logged workflow start')
+        this.workflowRunId = workflowRunId
+      }
     } catch (error) {
       core.warning(
         'Failed to authenticate or log workflow start: ' +
