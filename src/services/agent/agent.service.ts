@@ -5,7 +5,8 @@ import { ApiService } from '../api/api.service.js'
 import { GitService } from '../git/git.service.js'
 import { CoverageAnalysisService } from '../coverage-analysis/coverage-analysis.service.js'
 import { ChangedFilesService } from '../github/changed-files.service.js'
-import { TsScoutService } from '@earlyai/ts-scout'
+import { TYPES } from '@/container.types.js'
+import type { ITSScout } from '@/container.types.js'
 
 /**
  * Agent service that orchestrates all other services and implements business flows
@@ -20,7 +21,7 @@ export class AgentService {
     private readonly coverageAnalysisService: CoverageAnalysisService,
     @inject(ChangedFilesService)
     private readonly changedFilesService: ChangedFilesService,
-    @inject(TsScoutService) private readonly scoutService: TsScoutService
+    @inject(TYPES.TsScoutService) private readonly scoutService: ITSScout
   ) {}
 
   /**

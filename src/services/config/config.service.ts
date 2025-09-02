@@ -2,6 +2,7 @@ import { injectable } from 'inversify'
 import * as core from '@actions/core'
 import type { IConfigService, Config } from './config.types.js'
 import { ConfigSchema } from './config.types.js'
+import { isEmpty } from '@earlyai/core'
 
 /**
  * Configuration service for retrieving and validating GitHub Actions configuration
@@ -78,7 +79,7 @@ export class ConfigService implements IConfigService {
    * @returns Raw configuration object
    */
   private getRawConfigFromInputs(): Record<string, string> {
-    return {
+    const config = {
       testStructure: core.getInput('test-structure'),
       testFramework: core.getInput('test-framework'),
       testSuffix: core.getInput('test-suffix'),
@@ -91,6 +92,11 @@ export class ConfigService implements IConfigService {
       apiKey: core.getInput('apiKey'),
       token: core.getInput('token') || process.env.GITHUB_TOKEN as string
     }
+    
+    // Filter out empty strings to let Zod handle defaults
+    return Object.fromEntries(
+      Object.entries(config).filter(([, value]) => !isEmpty(value))
+    )
   }
 
   /**

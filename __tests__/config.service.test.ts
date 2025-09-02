@@ -14,7 +14,8 @@ jest.mock('@actions/core', () => ({
 // Import after mocking
 import { Container } from 'inversify'
 import { ConfigService } from '../src/services/config/config.service.js'
-import { TsScoutService } from '@earlyai/ts-scout'
+import { ITSScout, TYPES } from '../src/container.types.js'
+import { createTSScout } from '@earlyai/ts-scout'
 
 // Get the mocked functions using dynamic imports
 let mockGetInput: jest.MockedFunction<(key: string) => string>
@@ -37,7 +38,12 @@ describe('ConfigService', () => {
     container = new Container({ autobind: true })
     
     // Bind external services that can't use autobind
-    container.bind(TsScoutService).toSelf().inSingletonScope()
+    container.bind<ITSScout>(TYPES.TsScoutService).toDynamicValue((ctx) => {
+      const config = ctx.get(ConfigService)
+      // Ensure config is initialized before creating ts-scout
+      config.getConfig()
+      return createTSScout(config.createTsScoutConfig())
+    })
 
     // Reset mocks
     jest.clearAllMocks()
