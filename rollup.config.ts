@@ -14,10 +14,6 @@ const config = {
     sourcemap: true,
     exports: 'auto'
   },
-  external: [
-    // Native module that should not be bundled
-    'keytar'
-  ],
   plugins: [
     typescript(),
     nodeResolve({
@@ -26,9 +22,7 @@ const config = {
     }),
     commonjs({
       ignoreDynamicRequires: true,
-      transformMixedEsModules: true,
-      // Exclude keytar from commonjs transformation
-      exclude: ['keytar']
+      transformMixedEsModules: true
     }),
     copy({
       targets: [
