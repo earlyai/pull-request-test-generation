@@ -69,7 +69,9 @@ export class AgentService {
       const gitInfo = await this.gitService.getGitInfo()
       const prNumber = this.githubService.getPullRequestNumber()
       if (prNumber) {
-        const workflowRunId = await this.apiService.logStartOperation(gitInfo, { prNumber })
+        const workflowRunId = await this.apiService.logStartOperation(gitInfo, {
+          prNumber
+        })
         core.info('Successfully logged workflow start')
         this.workflowRunId = workflowRunId
       } else {

@@ -36,7 +36,7 @@ describe('ConfigService', () => {
   beforeEach(() => {
     // Create a fresh container for each test
     container = new Container({ autobind: true })
-    
+
     // Bind external services that can't use autobind
     container.bind<ITSScout>(TYPES.TsScoutService).toDynamicValue((ctx) => {
       const config = ctx.get(ConfigService)
@@ -62,7 +62,7 @@ describe('ConfigService', () => {
   afterEach(() => {
     // Clean up the container
     container.unbindAll()
-    
+
     // Restore original environment
     process.env = originalEnv
   })
@@ -236,7 +236,7 @@ describe('ConfigService', () => {
     it('should work with container dependency injection', () => {
       // This test verifies that the container can successfully provide ConfigService
       const configService = container.get(ConfigService)
-      
+
       // Should be able to get config without errors
       expect(() => configService.getConfig()).not.toThrow()
     })

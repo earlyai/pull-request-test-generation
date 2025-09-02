@@ -1,16 +1,15 @@
-import { SerializedTestable, CoverageReport } from "@earlyai/ts-scout";
+import { SerializedTestable, CoverageReport } from '@earlyai/ts-scout'
 
 export const TYPES = {
-    TsScoutService: Symbol.for("TsScoutService")
-  } as const;
+  TsScoutService: Symbol.for('TsScoutService')
+} as const
 
-
-  export interface ITSScout {
-    getTestables(pattern: string): Promise<[string, SerializedTestable[]][]>; // replace with actual return type
-    generateCoverage(): Promise<any>;               // refine return type
-    getCoverageTree(): Promise<CoverageReport | null>;                // refine return type
-    generateTests(filePath: string, testable: SerializedTestable): Promise<any>;
-    bulkGenerateTests(
-      testablesToGenerate: { filePath: string; testable: SerializedTestable }[],
-    ): Promise<any>;
-  }
+export interface ITSScout {
+  getTestables(pattern: string): Promise<[string, SerializedTestable[]][]> // replace with actual return type
+  generateCoverage(): Promise<any> // refine return type
+  getCoverageTree(): Promise<CoverageReport | null> // refine return type
+  generateTests(filePath: string, testable: SerializedTestable): Promise<any>
+  bulkGenerateTests(
+    testablesToGenerate: { filePath: string; testable: SerializedTestable }[]
+  ): Promise<any>
+}

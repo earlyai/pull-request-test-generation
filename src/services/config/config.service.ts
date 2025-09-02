@@ -90,9 +90,9 @@ export class ConfigService implements IConfigService {
       scoutConcurrency: core.getInput('scout-concurrency'),
       baseURL: core.getInput('base-url'),
       apiKey: core.getInput('apiKey'),
-      token: core.getInput('token') || process.env.GITHUB_TOKEN as string
+      token: core.getInput('token') || (process.env.GITHUB_TOKEN as string)
     }
-    
+
     // Filter out empty strings to let Zod handle defaults
     return Object.fromEntries(
       Object.entries(config).filter(([, value]) => !isEmpty(value))

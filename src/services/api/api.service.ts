@@ -293,7 +293,10 @@ export class ApiService {
    * @param gitInfo Git repository information
    * @returns Promise resolving to the workflow run ID
    */
-  public async logStartOperation(gitInfo: GitInfo, githubContext?: {prNumber: number}): Promise<string> {
+  public async logStartOperation(
+    gitInfo: GitInfo,
+    githubContext?: { prNumber: number }
+  ): Promise<string> {
     const config = this.configService.getConfig()
 
     // Get PR URL from GitHub context if available

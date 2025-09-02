@@ -29,7 +29,9 @@ export class GitHubService implements IGitHubService {
     const token =
       this.configService.getConfigValue('token') || process.env.GITHUB_TOKEN
     if (!token) {
-      throw new Error('GitHub token is required. Set GITHUB_TOKEN environment variable or configure token in settings.')
+      throw new Error(
+        'GitHub token is required. Set GITHUB_TOKEN environment variable or configure token in settings.'
+      )
     }
     this.octokit = github.getOctokit(token)
     this.context = github.context
