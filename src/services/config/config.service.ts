@@ -2,7 +2,6 @@ import { injectable } from 'inversify'
 import * as core from '@actions/core'
 import type { IConfigService, Config } from './config.types.js'
 import { ConfigSchema } from './config.types.js'
-import { isEmpty } from '@earlyai/core'
 
 /**
  * Configuration service for retrieving and validating GitHub Actions configuration
@@ -79,7 +78,7 @@ export class ConfigService implements IConfigService {
    * @returns Raw configuration object
    */
   private getRawConfigFromInputs(): Record<string, string> {
-    const config = {
+    return {
       testStructure: core.getInput('test-structure'),
       testFramework: core.getInput('test-framework'),
       testSuffix: core.getInput('test-suffix'),
@@ -92,9 +91,49 @@ export class ConfigService implements IConfigService {
       apiKey: core.getInput('apiKey'),
       token: core.getInput('token') || process.env.GITHUB_TOKEN as string
     }
-    //filter out empty strings
-    return Object.fromEntries(
-      Object.entries(config).filter(([, value]) => !isEmpty(value))
-    )
+  }
+
+  /**
+   * Creates TsScoutService configuration from current config
+   * @returns Configuration object for ts-scout
+   */
+  public createTsScoutConfig() {
+    if (!this.config) {
+      throw new Error('Config not initialized. Call getConfig() first.')
+    }
+
+    return {
+      rootPath: process.cwd(),
+      isSiblingFolderStructured: this.config.testStructure === 'siblingFolder',
+      gitURL: process.env.GITHUB_REPOSITORY
+        ? `https://github.com/${process.env.GITHUB_REPOSITORY}`
+        : '',
+      testFramework: this.config.testFramework,
+      greyTestBehaviour: 'keep' as const,
+      redTestBehaviour: 'keep' as const,
+      generatedTestStructure: 'categories' as const,
+      generateTestsLLMModelName: 'gpt-4',
+      isRootFolderStructured: this.config.testStructure === 'rootFolder',
+      llmTemperature: 0.7,
+      llmTopP: 1,
+      clientSource: 'github-action' as const,
+      backendURL: this.config.baseURL,
+      requestSource: this.config.requestSource,
+      firebaseWebApiKey: process.env.FIREBASE_WEB_API_KEY || '',
+      exchangeEndpoint: process.env.EXCHANGE_ENDPOINT || 'auth/exchange',
+      userPrompt: '',
+      testLocation:
+        this.config.testStructure === 'siblingFolder' ? '__tests__' : 'tests',
+      threshold: this.config.coverageThreshold,
+      concurrency: this.config.scoutConcurrency,
+      testFileFormat: 'ts',
+      generateTestsConcurrency: this.config.scoutConcurrency,
+      outputType: 'newCodeFile' as const,
+      shouldRefreshCoverage: this.config.calculateCoverage === 'on',
+      kebabCaseFileName: this.config.testFileName === 'kebabCase',
+      earlyTestFilenameSuffix: '.early',
+      testSuffix: this.config.testSuffix,
+      isAppendPrompt: false
+    }
   }
 }
