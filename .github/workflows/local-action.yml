@@ -30,6 +30,7 @@ jobs:
         run: npm run build
 
       - name: Test Local Action
+        id: test-action
         uses: ./
         with:
           apiKey: 123
