@@ -2,7 +2,7 @@ import { injectable } from "inversify";
 
 import * as core from "@actions/core";
 import { isDefined } from "@earlyai/core";
-import { CoverageReaderFileReport, CoverageReport } from "@earlyai/ts-scout";
+import { CoverageReaderFileReport, CoverageReport } from "@earlyai/ts-agent";
 
 import type {
   FilteredTestable,

@@ -32,7 +32,6 @@
     "coverage": "npx make-coverage-badge --output-path ./badges/coverage.svg",
     "format:write": "npx prettier --write .",
     "format:check": "npx prettier --check .",
-    "lint": "npx eslint .",
     "local-action": "npx @github/local-action . src/main.ts .env",
     "package:watch": "npm run package -- --watch",
     "test": "jest",

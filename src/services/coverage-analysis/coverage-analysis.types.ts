@@ -2,7 +2,7 @@
  * Types and interfaces for the coverage analysis service
  */
 
-import { CoverageReport } from "@earlyai/ts-scout";
+import { CoverageReport } from "@earlyai/ts-agent";
 
 /**
  * Represents a filtered testable with additional context
