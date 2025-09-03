@@ -1,0 +1,28 @@
+#!/bin/sh
+. "$HOME/.nvm/nvm.sh"
+. "$(dirname "$0")/_/husky.sh"
+
+npm run build
+
+# checking if dist folder is changed
+set -euo pipefail
+
+if ! git diff --quiet --exit-code -- dist; then
+  echo "There are changes in dist/ (unstaged)."
+  git diff --name-status -- dist
+  exit 1
+fi
+
+if ! git diff --cached --quiet --exit-code -- dist; then
+  echo "There are staged changes in dist/."
+  git diff --cached --name-status -- dist
+  exit 1
+fi
+
+if [[ -n "$(git ls-files --others --exclude-standard dist)" ]]; then
+  echo "There are untracked files in dist/."
+  git ls-files --others --exclude-standard dist
+  exit 1
+fi
+
+echo "No Git changes under dist/"

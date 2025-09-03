@@ -32,7 +32,6 @@
     "coverage": "npx make-coverage-badge --output-path ./badges/coverage.svg",
     "format:write": "npx prettier --write .",
     "format:check": "npx prettier --check .",
-    "lint": "npx eslint .",
     "local-action": "npx @github/local-action . src/main.ts .env",
     "package:watch": "npm run package -- --watch",
     "test": "jest",
@@ -42,8 +41,8 @@
   "dependencies": {
     "@actions/core": "^1.11.1",
     "@actions/github": "^6.0.1",
-    "@earlyai/core": "^1.2.0",
-    "@earlyai/ts-scout": "^0.4.0",
+    "@earlyai/core": "^1.5.0",
+    "@earlyai/ts-agent": "^0.0.1",
     "axios": "^1.11.0",
     "axios-retry": "^4.5.0",
     "inversify": "^7.9.1",

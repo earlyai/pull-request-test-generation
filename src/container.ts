@@ -1,19 +1,19 @@
 import { Container } from "inversify";
 
-import { createTSScout } from "@earlyai/ts-scout";
+import { createTSAgent } from "@earlyai/ts-agent";
 
-import { ITSScout, TYPES } from "./container.types.js";
+import { ITSAgent, TYPES } from "./container.types.js";
 import { ConfigService } from "./services/config/config.service.js";
 
 // Create and configure the container with autobind
 export const container = new Container({ autobind: true });
 
 // Bind external services that can't use autobind
-container.bind<ITSScout>(TYPES.TsScoutService).toDynamicValue(async (context) => {
+container.bind<ITSAgent>(TYPES.TSAgent).toDynamicValue(async (context) => {
   const configService = context.get(ConfigService);
-  const scout = createTSScout(configService.getConfig());
+  const agent = createTSAgent(configService.getConfig());
 
-  await scout.init();
+  await agent.init();
 
-  return scout;
+  return agent;
 });

@@ -2,9 +2,9 @@ import { inject, injectable } from "inversify";
 
 import * as core from "@actions/core";
 import { isDefined, isEmpty } from "@earlyai/core";
-import { SerializedTestable } from "@earlyai/ts-scout";
+import { SerializedTestable } from "@earlyai/ts-agent";
 
-import type { ITSScout } from "@/container.types.js";
+import type { ITSAgent } from "@/container.types.js";
 import { TYPES } from "@/container.types.js";
 
 import { ApiService } from "../api/api.service.js";
@@ -28,7 +28,7 @@ export class AgentService {
     @inject(ChangedFilesService)
     private readonly changedFilesService: ChangedFilesService,
     @inject(GitHubService) private readonly githubService: GitHubService,
-    @inject(TYPES.TsScoutService) private readonly scoutService: ITSScout,
+    @inject(TYPES.TSAgent) private readonly tsAgent: ITSAgent,
   ) {}
 
   /**
@@ -103,8 +103,8 @@ export class AgentService {
    */
   private async generateInitialCoverage(): Promise<void> {
     core.info("Generating initial coverage...");
-    await this.scoutService.generateCoverage();
-    const coverageTree = await this.scoutService.getCoverageTree();
+    await this.tsAgent.generateCoverage();
+    const coverageTree = await this.tsAgent.getCoverageTree();
 
     if (!coverageTree) {
       throw new Error("Failed to generate initial coverage tree");
@@ -147,7 +147,7 @@ export class AgentService {
 
         // Analyze coverage for changed files
         const config = this.configService.getConfig();
-        const coverageTree = await this.scoutService.getCoverageTree();
+        const coverageTree = await this.tsAgent.getCoverageTree();
 
         if (!coverageTree) {
           throw new Error("Failed to get coverage tree for analysis");
@@ -167,7 +167,7 @@ export class AgentService {
 
         for (const filePath of changedFilesData.files) {
           core.debug(`Getting testables for file: ${filePath}`);
-          const fileTestables = await this.scoutService.getTestables(filePath);
+          const fileTestables = await this.tsAgent.getTestables(filePath);
 
           allTestables.push(...fileTestables);
         }
@@ -236,7 +236,7 @@ export class AgentService {
       testable: SerializedTestable;
     }[],
   ): Promise<unknown> {
-    return this.scoutService.bulkGenerateTests(filteredTestablesResult);
+    return this.tsAgent.bulkGenerateTests(filteredTestablesResult);
   }
 
   /**
@@ -244,8 +244,8 @@ export class AgentService {
    */
   private async generateFinalCoverageAndLog(): Promise<void> {
     core.info("Generating final coverage...");
-    await this.scoutService.generateCoverage();
-    const postCoverageTree = await this.scoutService.getCoverageTree();
+    await this.tsAgent.generateCoverage();
+    const postCoverageTree = await this.tsAgent.getCoverageTree();
 
     if (!postCoverageTree) {
       throw new Error("Failed to generate final coverage tree");
