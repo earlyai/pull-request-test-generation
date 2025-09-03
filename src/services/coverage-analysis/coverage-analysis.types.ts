@@ -2,20 +2,20 @@
  * Types and interfaces for the coverage analysis service
  */
 
-import { CoverageReport } from '@earlyai/ts-scout'
+import { CoverageReport } from "@earlyai/ts-scout";
 
 /**
  * Represents a filtered testable with additional context
  */
 export interface FilteredTestable {
   /** The name of the testable item */
-  readonly name: string
+  readonly name: string;
   /** The coverage percentage */
-  readonly percentage: number | null
+  readonly percentage: number | null;
   /** The file path where this testable is located */
-  readonly filePath: string
+  readonly filePath: string;
   /** The reason why this testable was filtered (for debugging) */
-  readonly reason: 'no-coverage' | 'zero-coverage' | 'below-threshold'
+  readonly reason: "no-coverage" | "zero-coverage" | "below-threshold";
 }
 
 /**
@@ -23,15 +23,15 @@ export interface FilteredTestable {
  */
 export interface FilteredTestablesResult {
   /** Array of filtered testables */
-  readonly testables: readonly FilteredTestable[]
+  readonly testables: readonly FilteredTestable[];
   /** Total number of testables analyzed */
-  readonly totalAnalyzed: number
+  readonly totalAnalyzed: number;
   /** Number of testables that met the filtering criteria */
-  readonly filteredCount: number
+  readonly filteredCount: number;
   /** Number of changed files that had coverage data */
-  readonly filesWithCoverage: number
+  readonly filesWithCoverage: number;
   /** Number of changed files without coverage data */
-  readonly filesWithoutCoverage: number
+  readonly filesWithoutCoverage: number;
 }
 
 /**
@@ -39,7 +39,7 @@ export interface FilteredTestablesResult {
  */
 export interface TestableFilterConfig {
   /** Coverage threshold percentage (0-100) */
-  readonly coverageThreshold: number
+  readonly coverageThreshold: number;
 }
 
 /**
@@ -56,13 +56,13 @@ export interface ICoverageAnalysisService {
   analyzeChangedFiles(
     coverageTree: CoverageReport,
     changedFiles: readonly string[],
-    filterConfig: TestableFilterConfig
-  ): Promise<FilteredTestablesResult>
+    filterConfig: TestableFilterConfig,
+  ): Promise<FilteredTestablesResult>;
 }
 
 /**
  * Default testable filter configuration
  */
 export const DEFAULT_TESTABLE_FILTER_CONFIG: Required<TestableFilterConfig> = {
-  coverageThreshold: 0
-} as const
+  coverageThreshold: 0,
+} as const;

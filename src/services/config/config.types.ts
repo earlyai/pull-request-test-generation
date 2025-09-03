@@ -1,114 +1,107 @@
-import { z } from 'zod'
+import { z } from "zod";
 
-import { ObjectValues } from '@earlyai/core'
+import { ObjectValues } from "@earlyai/core";
 
 export const TEST_STRUCTURE_VARIANT = {
-  SIBLING_FOLDER: 'siblingFolder',
-  ROOT_FOLDER: 'rootFolder'
-} as const
+  SIBLING_FOLDER: "siblingFolder",
+  ROOT_FOLDER: "rootFolder",
+} as const;
 
-export type TestStructureVariant = ObjectValues<typeof TEST_STRUCTURE_VARIANT>
+export type TestStructureVariant = ObjectValues<typeof TEST_STRUCTURE_VARIANT>;
 
 export const TEST_FRAMEWORK = {
-  JEST: 'jest',
-  MOCHA: 'mocha',
-  VITEST: 'vitest'
-} as const
+  JEST: "jest",
+  MOCHA: "mocha",
+  VITEST: "vitest",
+} as const;
 
-export type TestFramework = ObjectValues<typeof TEST_FRAMEWORK>
+export type TestFramework = ObjectValues<typeof TEST_FRAMEWORK>;
 
 export const TEST_SUFFIX = {
-  SPEC: 'spec',
-  TEST: 'test'
-} as const
+  SPEC: "spec",
+  TEST: "test",
+} as const;
 
-export type TestSuffix = ObjectValues<typeof TEST_SUFFIX>
+export type TestSuffix = ObjectValues<typeof TEST_SUFFIX>;
 
 export const TEST_FILE_NAME = {
-  CAMEL_CASE: 'camelCase',
-  KEBAB_CASE: 'kebabCase'
-} as const
+  CAMEL_CASE: "camelCase",
+  KEBAB_CASE: "kebabCase",
+} as const;
 
 export const SETTING_OPTION = {
-  ON: 'on',
-  OFF: 'off'
-} as const
+  ON: "on",
+  OFF: "off",
+} as const;
 
 export const PYTHON_TESTING_FRAMEWORK = {
-  PYTEST: 'pytest'
-} as const
+  PYTEST: "pytest",
+} as const;
 
 export const REQUEST_SOURCE = {
-  CLI: 'CLI'
-} as const
+  CLI: "CLI",
+} as const;
 
 export const COVERAGE_THRESHOLD = {
   DEFAULT: 0,
   MIN: 0,
-  MAX: 100
-} as const
+  MAX: 100,
+} as const;
 
 export const SCOUT_CONCURRENCY = {
   DEFAULT: 5,
   MIN: 1,
-  MAX: 50
-} as const
+  MAX: 50,
+} as const;
 
-export type TestFileName = ObjectValues<typeof TEST_FILE_NAME>
+export type TestFileName = ObjectValues<typeof TEST_FILE_NAME>;
 
-export type TestAutoRefreshCoverage = ObjectValues<typeof SETTING_OPTION>
+export type TestAutoRefreshCoverage = ObjectValues<typeof SETTING_OPTION>;
 
-export type CalculateCoverage = ObjectValues<typeof SETTING_OPTION>
+export type CalculateCoverage = ObjectValues<typeof SETTING_OPTION>;
 
-export type RequestSource = ObjectValues<typeof REQUEST_SOURCE>
+export type RequestSource = ObjectValues<typeof REQUEST_SOURCE>;
 
-export type ScoutConcurrency = ObjectValues<typeof SCOUT_CONCURRENCY>
+export type ScoutConcurrency = ObjectValues<typeof SCOUT_CONCURRENCY>;
 
 export const ConfigSchema = z.object({
   testStructure: z
     .string()
-    .default('siblingFolder')
-    .pipe(
-      z.enum([
-        TEST_STRUCTURE_VARIANT.SIBLING_FOLDER,
-        TEST_STRUCTURE_VARIANT.ROOT_FOLDER
-      ])
-    ),
+    .default("siblingFolder")
+    .pipe(z.enum([TEST_STRUCTURE_VARIANT.SIBLING_FOLDER, TEST_STRUCTURE_VARIANT.ROOT_FOLDER])),
   testFramework: z
     .string()
-    .default('jest')
-    .pipe(
-      z.enum([TEST_FRAMEWORK.JEST, TEST_FRAMEWORK.MOCHA, TEST_FRAMEWORK.VITEST])
-    ),
+    .default("jest")
+    .pipe(z.enum([TEST_FRAMEWORK.JEST, TEST_FRAMEWORK.MOCHA, TEST_FRAMEWORK.VITEST])),
   testSuffix: z
     .string()
-    .default('spec')
+    .default("spec")
     .pipe(z.enum([TEST_SUFFIX.SPEC, TEST_SUFFIX.TEST])),
   testFileName: z
     .string()
-    .default('camelCase')
+    .default("camelCase")
     .pipe(z.enum([TEST_FILE_NAME.CAMEL_CASE, TEST_FILE_NAME.KEBAB_CASE])),
   calculateCoverage: z
     .string()
-    .default('on')
-    .pipe(z.enum(['on', 'off'])),
+    .default("on")
+    .pipe(z.enum(["on", "off"])),
   coverageThreshold: z
     .string()
-    .default('0')
+    .default("0")
     .transform((value) => Number.parseInt(value, 10))
     .pipe(z.number().min(COVERAGE_THRESHOLD.MIN).max(COVERAGE_THRESHOLD.MAX)),
-  requestSource: z.literal('CLI'),
+  requestSource: z.literal("CLI"),
   scoutConcurrency: z
     .string()
-    .default('5')
+    .default("5")
     .transform((value) => Number.parseInt(value, 10))
     .pipe(z.number().min(SCOUT_CONCURRENCY.MIN).max(SCOUT_CONCURRENCY.MAX)),
-  backendURL: z.string().default('https://api.startearly.ai'),
-  secretToken: z.string().default(''),
-  token: z.string()
-})
+  backendURL: z.string().default("https://api.startearly.ai"),
+  secretToken: z.string().default(""),
+  token: z.string(),
+});
 
-export type Config = z.infer<typeof ConfigSchema>
+export type Config = z.infer<typeof ConfigSchema>;
 
 /**
  * Configuration service interface for retrieving and validating configuration
@@ -118,12 +111,12 @@ export interface IConfigService {
    * Gets the validated configuration from GitHub Actions inputs
    * @returns Validated configuration
    */
-  getConfig(): Config
+  getConfig(): Config;
 
   /**
    * Gets a specific configuration value by key
    * @param key The configuration key
    * @returns The configuration value or undefined if not found
    */
-  getConfigValue<K extends keyof Config>(key: K): Config[K] | undefined
+  getConfigValue<K extends keyof Config>(key: K): Config[K] | undefined;
 }

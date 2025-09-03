@@ -94,8 +94,6 @@ typings/
 .DS_Store
 Thumbs.db
 
-# Ignore built ts files
-__tests__/runner/*
 
 # IDE files
 .idea
@@ -104,3 +102,7 @@ __tests__/runner/*
 .cursor
 .early.coverage
 !early-ts-scout-0.0.1.tgz
+
+
+# todo: check if needed to add to git
+badges

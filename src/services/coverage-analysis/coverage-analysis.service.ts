@@ -1,12 +1,15 @@
-import { injectable } from 'inversify'
-import * as core from '@actions/core'
+import { injectable } from "inversify";
+
+import * as core from "@actions/core";
+import { isDefined } from "@earlyai/core";
+import { CoverageReaderFileReport, CoverageReport } from "@earlyai/ts-scout";
+
 import type {
-  ICoverageAnalysisService,
-  FilteredTestablesResult,
   FilteredTestable,
-  TestableFilterConfig
-} from './coverage-analysis.types.js'
-import { CoverageReport, CoverageReaderFileReport } from '@earlyai/ts-scout'
+  FilteredTestablesResult,
+  ICoverageAnalysisService,
+  TestableFilterConfig,
+} from "./coverage-analysis.types.js";
 
 /**
  * Service for analyzing coverage data and filtering testables based on coverage threshold
@@ -23,40 +26,37 @@ export class CoverageAnalysisService implements ICoverageAnalysisService {
   public async analyzeChangedFiles(
     coverageTree: CoverageReport,
     changedFiles: readonly string[],
-    filterConfig: TestableFilterConfig
+    filterConfig: TestableFilterConfig,
   ): Promise<FilteredTestablesResult> {
     try {
       core.info(
-        `Analyzing coverage for ${changedFiles.length} changed files with threshold ${filterConfig.coverageThreshold}%`
-      )
+        `Analyzing coverage for ${changedFiles.length} changed files with threshold ${filterConfig.coverageThreshold}%`,
+      );
 
-      const filteredTestables: FilteredTestable[] = []
-      let totalAnalyzed = 0
-      let filesWithCoverage = 0
-      let filesWithoutCoverage = 0
+      const filteredTestables: FilteredTestable[] = [];
+      let totalAnalyzed = 0;
+      let filesWithCoverage = 0;
+      let filesWithoutCoverage = 0;
 
       for (const filePath of changedFiles) {
-        const normalizedPath = this.normalizeFilePath(filePath)
-        const fileCoverage = this.findFileCoverage(coverageTree, normalizedPath)
+        const normalizedPath = this.normalizeFilePath(filePath);
+        const fileCoverage = this.findFileCoverage(coverageTree, normalizedPath);
 
         if (fileCoverage) {
-          filesWithCoverage++
-          const fileTestables = this.filterTestablesForFile(
-            fileCoverage,
-            filePath,
-            filterConfig
-          )
-          filteredTestables.push(...fileTestables)
-          totalAnalyzed += fileCoverage.testables?.length ?? 0
+          filesWithCoverage++;
+          const fileTestables = this.filterTestablesForFile(fileCoverage, filePath, filterConfig);
+
+          filteredTestables.push(...fileTestables);
+          totalAnalyzed += fileCoverage.testables?.length ?? 0;
 
           if (fileTestables.length > 0) {
             core.debug(
-              `File ${filePath}: ${fileTestables.length}/${fileCoverage.testables?.length ?? 0} testables below threshold`
-            )
+              `File ${filePath}: ${fileTestables.length}/${fileCoverage.testables?.length ?? 0} testables below threshold`,
+            );
           }
         } else {
-          filesWithoutCoverage++
-          core.debug(`No coverage data found for file: ${filePath}`)
+          filesWithoutCoverage++;
+          core.debug(`No coverage data found for file: ${filePath}`);
         }
       }
 
@@ -65,26 +65,24 @@ export class CoverageAnalysisService implements ICoverageAnalysisService {
         totalAnalyzed,
         filteredCount: filteredTestables.length,
         filesWithCoverage,
-        filesWithoutCoverage
-      }
+        filesWithoutCoverage,
+      };
 
       core.info(
-        `Coverage analysis complete: ${result.filteredCount}/${result.totalAnalyzed} testables below threshold across ${result.filesWithCoverage} files`
-      )
+        `Coverage analysis complete: ${result.filteredCount}/${result.totalAnalyzed} testables below threshold across ${result.filesWithCoverage} files`,
+      );
 
       if (result.filesWithoutCoverage > 0) {
-        core.warning(
-          `${result.filesWithoutCoverage} changed files have no coverage data`
-        )
+        core.warning(`${result.filesWithoutCoverage} changed files have no coverage data`);
       }
 
-      return result
+      return result;
     } catch (error) {
       if (error instanceof Error) {
-        core.error(`Failed to analyze coverage: ${error.message}`)
-        throw error
+        core.error(`Failed to analyze coverage: ${error.message}`);
+        throw error;
       }
-      throw new Error('Unknown error occurred while analyzing coverage')
+      throw new Error("Unknown error occurred while analyzing coverage");
     }
   }
 
@@ -95,7 +93,7 @@ export class CoverageAnalysisService implements ICoverageAnalysisService {
    */
   private normalizeFilePath(filePath: string): string {
     // Remove leading slash if present and ensure consistent format
-    return filePath.startsWith('/') ? filePath.slice(1) : filePath
+    return filePath.startsWith("/") ? filePath.slice(1) : filePath;
   }
 
   /**
@@ -104,29 +102,27 @@ export class CoverageAnalysisService implements ICoverageAnalysisService {
    * @param normalizedPath The normalized file path
    * @returns File coverage data or null if not found
    */
-  private findFileCoverage(
-    coverageTree: CoverageReport,
-    normalizedPath: string
-  ): CoverageReaderFileReport | null {
+  private findFileCoverage(coverageTree: CoverageReport, normalizedPath: string): CoverageReaderFileReport | null {
     // Try exact match first
-    if (coverageTree[normalizedPath]) {
-      return coverageTree[normalizedPath]
+    if (isDefined(coverageTree[normalizedPath])) {
+      return coverageTree[normalizedPath];
     }
 
     // Try with leading slash
-    const withLeadingSlash = `/${normalizedPath}`
-    if (coverageTree[withLeadingSlash]) {
-      return coverageTree[withLeadingSlash]
+    const withLeadingSlash = `/${normalizedPath}`;
+
+    if (isDefined(coverageTree[withLeadingSlash])) {
+      return coverageTree[withLeadingSlash];
     }
 
     // Try case-insensitive match
     for (const [key, value] of Object.entries(coverageTree)) {
       if (key.toLowerCase() === normalizedPath.toLowerCase()) {
-        return value
+        return value;
       }
     }
 
-    return null
+    return null;
   }
 
   /**
@@ -139,25 +135,26 @@ export class CoverageAnalysisService implements ICoverageAnalysisService {
   private filterTestablesForFile(
     fileCoverage: CoverageReaderFileReport,
     originalFilePath: string,
-    filterConfig: TestableFilterConfig
+    filterConfig: TestableFilterConfig,
   ): FilteredTestable[] {
-    const filteredTestables: FilteredTestable[] = []
+    const filteredTestables: FilteredTestable[] = [];
 
     for (const testable of fileCoverage.testables ?? []) {
-      const shouldInclude = this.shouldIncludeTestable(testable, filterConfig)
+      const shouldInclude = this.shouldIncludeTestable(testable, filterConfig);
 
       if (shouldInclude) {
-        const reason = this.getFilterReason(testable)
+        const reason = this.getFilterReason(testable);
+
         filteredTestables.push({
           name: testable.name,
           percentage: testable.percentage,
           filePath: originalFilePath,
-          reason
-        })
+          reason,
+        });
       }
     }
 
-    return filteredTestables
+    return filteredTestables;
   }
 
   /**
@@ -166,29 +163,23 @@ export class CoverageAnalysisService implements ICoverageAnalysisService {
    * @param filterConfig The filtering configuration
    * @returns True if the testable should be included
    */
-  private shouldIncludeTestable(
-    testable: { percentage: number | null },
-    filterConfig: TestableFilterConfig
-  ): boolean {
+  private shouldIncludeTestable(testable: { percentage: number | null }, filterConfig: TestableFilterConfig): boolean {
     // Include testables with null coverage if configured
     if (testable.percentage === null) {
-      return true
+      return true;
     }
 
     // Include testables with zero coverage if configured
     if (testable.percentage === 0) {
-      return true
+      return true;
     }
 
     // Include testables below threshold
-    if (
-      testable.percentage !== null &&
-      testable.percentage < filterConfig.coverageThreshold
-    ) {
-      return true
+    if (isDefined(testable.percentage) && testable.percentage < filterConfig.coverageThreshold) {
+      return true;
     }
 
-    return false
+    return false;
   }
 
   /**
@@ -196,17 +187,15 @@ export class CoverageAnalysisService implements ICoverageAnalysisService {
    * @param testable The testable that was filtered
    * @returns The filter reason
    */
-  private getFilterReason(testable: {
-    percentage: number | null
-  }): FilteredTestable['reason'] {
+  private getFilterReason(testable: { percentage: number | null }): FilteredTestable["reason"] {
     if (testable.percentage === null) {
-      return 'no-coverage'
+      return "no-coverage";
     }
 
     if (testable.percentage === 0) {
-      return 'zero-coverage'
+      return "zero-coverage";
     }
 
-    return 'below-threshold'
+    return "below-threshold";
   }
 }
