@@ -33,13 +33,10 @@ export class ChangedFilesService {
    */
   public async getChangedFilesFromPR(): Promise<ChangedFilesResult> {
     try {
-      // Check if we should use mock data for debugging
       if (this.shouldUseMockData()) {
         core.info('Using mock data for changed files (ACTIONS_STEP_DEBUG=true)')
         return this.getMockChangedFiles()
       }
-
-      // GitHub service is already configured with token from ConfigService
 
       // Check if running in PR context
       if (!this.githubService.isPullRequestContext()) {
@@ -50,7 +47,6 @@ export class ChangedFilesService {
         }
       }
 
-      // Get PR number and changed files
       const prNumber = this.githubService.getPullRequestNumber()
       if (!prNumber) {
         return {
@@ -101,7 +97,8 @@ export class ChangedFilesService {
   private getMockChangedFiles(): ChangedFilesResult {
     const mockFiles = [
       'src/main.ts',
-      'src/services/config/config.service.ts'
+      'src/services/config/config.service.ts',
+      'src/services/api/api.service.ts'
       //   'src/services/coverage/coverage.service.ts',
       //   'src/services/github/github.service.ts',
       //   'package.json',
