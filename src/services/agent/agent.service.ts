@@ -1,7 +1,8 @@
 import { inject, injectable } from "inversify";
 
 import * as core from "@actions/core";
-import { isDefined } from "@earlyai/core";
+import { isDefined, isEmpty } from "@earlyai/core";
+import { SerializedTestable } from "@earlyai/ts-scout";
 
 import type { ITSScout } from "@/container.types.js";
 import { TYPES } from "@/container.types.js";
@@ -42,10 +43,15 @@ export class AgentService {
       await this.generateInitialCoverage();
 
       // Step 3: Get changed files from PR and analyze
-      await this.analyzeChangedFiles();
+      const filteredTestablesResult = await this.analyzeChangedFiles();
 
+      if (isEmpty(filteredTestablesResult)) {
+        core.warning("No filtered testables result");
+      } else {
+        core.info(`Filtered testables result count: ${filteredTestablesResult.length}`);
+      }
       // Step 4: TODO: Generate tests (not implemented yet in ts-scout)
-      await this.generateTests();
+      await this.generateTests(filteredTestablesResult);
 
       // Step 5: Run coverage again and log results
       await this.generateFinalCoverageAndLog();
@@ -113,13 +119,20 @@ export class AgentService {
   /**
    * Analyzes changed files from PR and filters based on business logic
    */
-  private async analyzeChangedFiles(): Promise<void> {
+  //TODO: refactor and simplify this
+  //eslint-disable-next-line sonarjs/cognitive-complexity
+  private async analyzeChangedFiles(): Promise<
+    {
+      filePath: string;
+      testable: SerializedTestable;
+    }[]
+  > {
     const githubToken = core.getInput("token") || process.env.GITHUB_TOKEN;
 
     if (!isDefined(githubToken)) {
       core.info("No GitHub token available, skipping changed files analysis");
 
-      return;
+      return [];
     }
 
     try {
@@ -150,6 +163,51 @@ export class AgentService {
         // Log the changed files for debugging
         core.debug(`Changed files: ${JSON.stringify(changedFilesData.files, null, 2)}`);
         core.debug(`Coverage analysis: ${JSON.stringify(filteredTestablesResult, null, 2)}`);
+        const allTestables: [string, SerializedTestable[]][] = [];
+
+        for (const filePath of changedFilesData.files) {
+          core.debug(`Getting testables for file: ${filePath}`);
+          const fileTestables = await this.scoutService.getTestables(filePath);
+
+          allTestables.push(...fileTestables);
+        }
+
+        // Create a map of filtered testables by file path and name for quick lookup
+        const filteredTestablesMap = new Map<string, Set<string>>();
+
+        for (const filteredTestable of filteredTestablesResult.testables) {
+          // Normalize file path to match scout service format (add leading slash)
+          const normalizedFilePath = filteredTestable.filePath.startsWith("/")
+            ? filteredTestable.filePath
+            : `/${filteredTestable.filePath}`;
+
+          if (!filteredTestablesMap.has(normalizedFilePath)) {
+            filteredTestablesMap.set(normalizedFilePath, new Set());
+          }
+          const testableSet = filteredTestablesMap.get(normalizedFilePath);
+
+          if (isDefined(testableSet)) {
+            testableSet.add(filteredTestable.name);
+          }
+        }
+        core.debug(`Filtered testables map: ${JSON.stringify(filteredTestablesMap, null, 2)}`);
+
+        // Filter testables to only include those present in filteredTestablesResult
+        const result: { filePath: string; testable: SerializedTestable }[] = [];
+
+        for (const [filePath, testables] of allTestables) {
+          const filteredNames = filteredTestablesMap.get(filePath);
+
+          if (filteredNames) {
+            for (const testable of testables) {
+              if (filteredNames.has(testable.name ?? "")) {
+                result.push({ filePath, testable });
+              }
+            }
+          }
+        }
+
+        return result;
       } else {
         // Handle failure cases
         if (isDefined(changedFilesResult.error)) {
@@ -159,18 +217,26 @@ export class AgentService {
             core.warning(`Failed to get changed files: ${changedFilesResult.error}`);
           }
         }
+
+        return [];
       }
     } catch (error) {
       core.warning(`Error analyzing changed files: ${error instanceof Error ? error.message : "Unknown error"}`);
+
+      return [];
     }
   }
 
   /**
    * TODO: Generate tests (not implemented yet in ts-scout)
    */
-  private async generateTests(): Promise<void> {
-    core.info("TODO: Generate tests - not implemented yet in ts-scout");
-    // This will be implemented when ts-scout supports test generation
+  private async generateTests(
+    filteredTestablesResult: {
+      filePath: string;
+      testable: SerializedTestable;
+    }[],
+  ): Promise<unknown> {
+    return this.scoutService.bulkGenerateTests(filteredTestablesResult);
   }
 
   /**
