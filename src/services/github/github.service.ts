@@ -1,14 +1,12 @@
-import { injectable, inject } from 'inversify'
-import * as core from '@actions/core'
-import * as github from '@actions/github'
-import type {
-  IGitHubService,
-  FilteredFilesResult,
-  FileFilterConfig,
-  ChangedFile
-} from './github.types.js'
-import { DEFAULT_FILE_FILTER_CONFIG } from './github.types.js'
-import { ConfigService } from '../config/config.service.js'
+import { inject, injectable } from "inversify";
+
+import * as core from "@actions/core";
+import * as github from "@actions/github";
+import { isDefined } from "@earlyai/core";
+
+import { ConfigService } from "../config/config.service.js";
+import type { ChangedFile, FileFilterConfig, FilteredFilesResult, IGitHubService } from "./github.types.js";
+import { DEFAULT_FILE_FILTER_CONFIG } from "./github.types.js";
 
 /**
  * GitHub service for pull request operations
@@ -16,25 +14,23 @@ import { ConfigService } from '../config/config.service.js'
  */
 @injectable()
 export class GitHubService implements IGitHubService {
-  private octokit: ReturnType<typeof github.getOctokit>
-  private context: typeof github.context
+  private octokit: ReturnType<typeof github.getOctokit>;
+  private context: typeof github.context;
 
   /**
    * Creates a new GitHub service instance
    */
-  public constructor(
-    @inject(ConfigService) private readonly configService: ConfigService
-  ) {
+  public constructor(@inject(ConfigService) private readonly configService: ConfigService) {
     // Get token from config service
-    const token =
-      this.configService.getConfigValue('token') || process.env.GITHUB_TOKEN
-    if (!token) {
+    const token = this.configService.getConfigValue("token") ?? process.env.GITHUB_TOKEN;
+
+    if (!isDefined(token)) {
       throw new Error(
-        'GitHub token is required. Set GITHUB_TOKEN environment variable or configure token in settings.'
-      )
+        "GitHub token is required. Set GITHUB_TOKEN environment variable or configure token in settings.",
+      );
     }
-    this.octokit = github.getOctokit(token)
-    this.context = github.context
+    this.octokit = github.getOctokit(token);
+    this.context = github.context;
   }
 
   /**
@@ -42,7 +38,7 @@ export class GitHubService implements IGitHubService {
    * @returns True if running in PR context, false otherwise
    */
   public isPullRequestContext(): boolean {
-    return this.context.eventName === 'pull_request'
+    return this.context.eventName === "pull_request";
   }
 
   /**
@@ -51,11 +47,12 @@ export class GitHubService implements IGitHubService {
    */
   public getPullRequestNumber(): number | null {
     if (!this.isPullRequestContext()) {
-      return null
+      return null;
     }
 
-    const prNumber = this.context.payload.pull_request?.number
-    return typeof prNumber === 'number' ? prNumber : null
+    const prNumber = this.context.payload.pull_request?.number;
+
+    return typeof prNumber === "number" ? prNumber : null;
   }
 
   /**
@@ -63,41 +60,38 @@ export class GitHubService implements IGitHubService {
    * @param filterConfig Optional configuration for file filtering
    * @returns Promise resolving to filtered files result
    */
-  public async getChangedFiles(
-    filterConfig?: Partial<FileFilterConfig>
-  ): Promise<FilteredFilesResult> {
+  public async getChangedFiles(filterConfig?: Partial<FileFilterConfig>): Promise<FilteredFilesResult> {
     try {
       if (!this.isPullRequestContext()) {
-        throw new Error('Not running in pull request context')
+        throw new Error("Not running in pull request context");
       }
 
-      const prNumber = this.getPullRequestNumber()
-      if (!prNumber) {
-        throw new Error('Unable to determine pull request number')
+      const prNumber = this.getPullRequestNumber();
+
+      if (!isDefined(prNumber)) {
+        throw new Error("Unable to determine pull request number");
       }
 
-      core.info(`Retrieving changed files for pull request #${prNumber}`)
+      core.info(`Retrieving changed files for pull request #${prNumber}`);
 
-      const changedFiles = await this.retrieveChangedFiles(prNumber)
-      const filteredFiles = this.filterFiles(changedFiles, filterConfig)
+      const changedFiles = await this.retrieveChangedFiles(prNumber);
+      const filteredFiles = this.filterFiles(changedFiles, filterConfig);
 
       const result: FilteredFilesResult = {
         files: filteredFiles,
         totalProcessed: changedFiles.length,
-        filteredCount: filteredFiles.length
-      }
+        filteredCount: filteredFiles.length,
+      };
 
-      core.info(
-        `Processed ${result.totalProcessed} changed files, filtered to ${result.filteredCount} relevant files`
-      )
+      core.info(`Processed ${result.totalProcessed} changed files, filtered to ${result.filteredCount} relevant files`);
 
-      return result
+      return result;
     } catch (error) {
       if (error instanceof Error) {
-        core.error(`Failed to get changed files: ${error.message}`)
-        throw error
+        core.error(`Failed to get changed files: ${error.message}`);
+        throw error;
       }
-      throw new Error('Unknown error occurred while getting changed files')
+      throw new Error("Unknown error occurred while getting changed files");
     }
   }
 
@@ -112,29 +106,27 @@ export class GitHubService implements IGitHubService {
         owner: this.context.repo.owner,
         repo: this.context.repo.repo,
         pull_number: prNumber,
-        per_page: 100 // Maximum allowed by GitHub API
-      })
+        per_page: 100, // Maximum allowed by GitHub API
+      });
 
       if (response.status !== 200) {
-        throw new Error(`GitHub API returned status ${response.status}`)
+        throw new Error(`GitHub API returned status ${response.status}`);
       }
 
       return response.data.map((file) => ({
         path: file.filename,
-        status: file.status as ChangedFile['status'],
+        status: file.status as ChangedFile["status"],
         sha: file.sha,
-        filename: file.filename.split('/').pop() || file.filename
-      }))
+        filename: file.filename.split("/").pop() ?? file.filename,
+      }));
     } catch (error) {
       if (error instanceof Error) {
-        if (error.message.includes('rate limit')) {
-          core.warning(
-            'GitHub API rate limit exceeded, consider using a token with higher limits'
-          )
+        if (error.message.includes("rate limit")) {
+          core.warning("GitHub API rate limit exceeded, consider using a token with higher limits");
         }
-        throw new Error(`Failed to retrieve changed files: ${error.message}`)
+        throw new Error(`Failed to retrieve changed files: ${error.message}`);
       }
-      throw new Error('Unknown error occurred while retrieving changed files')
+      throw new Error("Unknown error occurred while retrieving changed files");
     }
   }
 
@@ -144,30 +136,27 @@ export class GitHubService implements IGitHubService {
    * @param filterConfig Optional configuration for file filtering
    * @returns Array of filtered file paths
    */
-  private filterFiles(
-    changedFiles: ChangedFile[],
-    filterConfig?: Partial<FileFilterConfig>
-  ): string[] {
-    const config = { ...DEFAULT_FILE_FILTER_CONFIG, ...filterConfig }
+  private filterFiles(changedFiles: ChangedFile[], filterConfig?: Partial<FileFilterConfig>): string[] {
+    const config = { ...DEFAULT_FILE_FILTER_CONFIG, ...filterConfig };
 
     return changedFiles
       .filter((file) => {
         // Check if file has allowed extension
-        const hasAllowedExtension = config.allowedExtensions.some((ext) =>
-          file.path.toLowerCase().endsWith(ext)
-        )
+        const hasAllowedExtension = config.allowedExtensions.some((extension) =>
+          file.path.toLowerCase().endsWith(extension),
+        );
 
         if (!hasAllowedExtension) {
-          return false
+          return false;
         }
 
         // Check if file should be excluded based on patterns
         const shouldExclude = config.excludePatterns.some((pattern) =>
-          file.path.toLowerCase().includes(pattern.toLowerCase())
-        )
+          file.path.toLowerCase().includes(pattern.toLowerCase()),
+        );
 
-        return !shouldExclude
+        return !shouldExclude;
       })
-      .map((file) => file.path)
+      .map((file) => file.path);
   }
 }
