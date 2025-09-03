@@ -3,3 +3,17 @@
 . "$(dirname "$0")/_/husky.sh"
 
 npm run build
+
+
+# checking if dist folder is changed
+set -euo pipefail
+
+git_files=$(find dist -type f \( -name ".git" -o -name ".gitignore" -o -name ".gitattributes" -o -name ".gitmodules" \) 2>/dev/null || true)
+
+if [[ -n "$git_files" ]]; then
+  echo "❌ Git files found under dist/:"
+  echo "$git_files"
+  exit 1
+else
+  echo "✅ No Git files under dist/"
+fi
