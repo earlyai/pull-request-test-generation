@@ -21,8 +21,9 @@ export async function run(): Promise<void> {
     }
 
     // Get the AgentService from the container and run the PR context flow
-    const agentService = await container.getAsync(AgentService)
-    await agentService.runPRContextFlow()
+    const agentService = await container.getAsync(AgentService);
+
+    await agentService.runPRContextFlow();
   } catch (error) {
     // Fail the workflow run if an error occurs
     if (error instanceof Error) {

@@ -12,3 +12,5 @@ on:
 jobs:
   check-pr-title:
     uses: earlyai/gha-workflows/.github/workflows/conventional-commit.yml@master
+    secrets:
+      gha-workflows-read-pat: ${{ secrets.GHA_WORKFLOWS_READ_PAT }}

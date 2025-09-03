@@ -101,9 +101,8 @@ export class ChangedFilesService {
    */
   private getMockChangedFiles(): ChangedFilesResult {
     const mockFiles = [
-      'src/main.ts',
-      'src/services/config/config.service.ts',
-      'src/services/api/api.service.ts'
+      "src/main.ts",
+      "src/services/config/config.service.ts",
       //   'src/services/coverage/coverage.service.ts',
       //   'src/services/github/github.service.ts',
       //   'package.json',

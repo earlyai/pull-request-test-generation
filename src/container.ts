@@ -9,9 +9,11 @@ import { ConfigService } from "./services/config/config.service.js";
 export const container = new Container({ autobind: true });
 
 // Bind external services that can't use autobind
-container.bind<ITSScout>(TYPES.TsScoutService).toDynamicValue(async (ctx) => {
-  const configService = ctx.get(ConfigService)
-  const scout =  createTSScout(configService.getConfig())
-  await scout.init()
-  return scout
-})
+container.bind<ITSScout>(TYPES.TsScoutService).toDynamicValue(async (context) => {
+  const configService = context.get(ConfigService);
+  const scout = createTSScout(configService.getConfig());
+
+  await scout.init();
+
+  return scout;
+});
