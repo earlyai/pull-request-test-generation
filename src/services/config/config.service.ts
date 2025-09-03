@@ -1,4 +1,4 @@
-import { injectable, postConstruct } from 'inversify'
+import { injectable } from 'inversify'
 import * as core from '@actions/core'
 import type { IConfigService, Config } from './config.types.js'
 import { ConfigSchema } from './config.types.js'
@@ -7,18 +7,36 @@ import { isEmpty } from '@earlyai/core'
 /**
  * Configuration service for retrieving and validating GitHub Actions configuration
  */
-@injectable()
+@injectable('Singleton')
 export class ConfigService implements IConfigService {
-  private config: Config | undefined
-  private validationErrors: string[] = []
-  private isValidConfig = false
+  private readonly config: Config
+
+  constructor() {
+    this.config = this.initializeConfig()
+  }
 
   /**
    * Gets the validated configuration from GitHub Actions inputs
-   * @returns Promise resolving to validated configuration
+   * @returns Validated configuration
    */
-  @postConstruct()
   public getConfig(): Config {
+    return this.config
+  }
+
+  /**
+   * Gets a specific configuration value by key
+   * @param key The configuration key
+   * @returns The configuration value or undefined if not found
+   */
+  public getConfigValue<K extends keyof Config>(key: K): Config[K] | undefined {
+    return this.config[key]
+  }
+
+  /**
+   * Initializes and validates configuration from GitHub Actions inputs
+   * @returns Validated configuration
+   */
+  private initializeConfig(): Config {
     try {
       // Get raw configuration values from GitHub Actions inputs
       const rawConfig = this.getRawConfigFromInputs()
@@ -28,53 +46,19 @@ export class ConfigService implements IConfigService {
       // Validate using Zod schema (which handles defaults)
       const validatedConfig = ConfigSchema.parse(rawConfig)
 
-      this.config = validatedConfig
-      this.isValidConfig = true
-      this.validationErrors = []
-
       core.info('Configuration validated successfully')
       core.debug(`Configuration: ${JSON.stringify(validatedConfig, null, 2)}`)
 
       return validatedConfig
     } catch (error) {
-      this.isValidConfig = false
-
       if (error instanceof Error) {
-        this.validationErrors = [error.message]
         core.warning(`Configuration validation failed: ${error.message}`)
       } else {
-        this.validationErrors = ['Unknown configuration validation error']
         core.warning('Configuration validation failed with unknown error')
       }
 
-      // Let Zod handle defaults - no need for fallback config
       throw error
     }
-  }
-
-  /**
-   * Gets a specific configuration value by key
-   * @param key The configuration key
-   * @returns The configuration value or undefined if not found
-   */
-  public getConfigValue<K extends keyof Config>(key: K): Config[K] | undefined {
-    return this.config?.[key]
-  }
-
-  /**
-   * Checks if the configuration is valid
-   * @returns True if configuration is valid, false otherwise
-   */
-  public isValid(): boolean {
-    return this.isValidConfig
-  }
-
-  /**
-   * Gets validation errors if any
-   * @returns Array of validation error messages
-   */
-  public getValidationErrors(): readonly string[] {
-    return this.validationErrors
   }
 
   /**

@@ -126,16 +126,4 @@ export interface IConfigService {
    * @returns The configuration value or undefined if not found
    */
   getConfigValue<K extends keyof Config>(key: K): Config[K] | undefined
-
-  /**
-   * Checks if the configuration is valid
-   * @returns True if configuration is valid, false otherwise
-   */
-  isValid(): boolean
-
-  /**
-   * Gets validation errors if any
-   * @returns Array of validation error messages
-   */
-  getValidationErrors(): readonly string[]
 }
