@@ -7,13 +7,13 @@
  */
 export interface GitInfo {
   /** The branch, tag, or commit reference name */
-  readonly ref_name: string
+  readonly ref_name: string;
   /** The repository name */
-  readonly repository: string
+  readonly repository: string;
   /** The repository owner/organization */
-  readonly owner: string
+  readonly owner: string;
   /** The current commit SHA */
-  readonly sha: string
+  readonly sha: string;
 }
 
 /**
@@ -24,5 +24,5 @@ export interface IGitService {
    * Gets Git information from the local repository
    * @returns Promise resolving to Git information
    */
-  getGitInfo(): Promise<GitInfo>
+  getGitInfo(): Promise<GitInfo>;
 }

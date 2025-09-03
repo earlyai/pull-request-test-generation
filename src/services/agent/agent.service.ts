@@ -25,7 +25,7 @@ export class AgentService {
     @inject(ChangedFilesService)
     private readonly changedFilesService: ChangedFilesService,
     @inject(GitHubService) private readonly githubService: GitHubService,
-    @inject(TYPES.TsScoutService) private readonly scoutService: ITSScout
+    @inject(TYPES.TsScoutService) private readonly scoutService: ITSScout,
   ) {}
 
   /**
@@ -34,10 +34,10 @@ export class AgentService {
   public async runPRContextFlow(): Promise<void> {
     try {
       // Step 1: Login and log start
-      await this.loginAndLogStart()
+      await this.loginAndLogStart();
 
       // Step 2: Generate initial coverage
-      await this.generateInitialCoverage()
+      await this.generateInitialCoverage();
 
       // Step 3: Get changed files from PR and analyze
       const filteredTestablesResult = await this.analyzeChangedFiles()
@@ -52,15 +52,13 @@ export class AgentService {
       await this.generateTests(filteredTestablesResult)
 
       // Step 5: Run coverage again and log results
-      await this.generateFinalCoverageAndLog()
+      await this.generateFinalCoverageAndLog();
     } catch (error) {
-      core.error(
-        `Agent flow failed: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
-      throw error
+      core.error(`Agent flow failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+      throw error;
     } finally {
       // Always log end of operation
-      await this.logEndOperation()
+      await this.logEndOperation();
     }
   }
 
@@ -70,28 +68,30 @@ export class AgentService {
   private async loginAndLogStart(): Promise<void> {
     try {
       // Authenticate with the API
-      await this.apiService.login()
-      core.info('Successfully authenticated with the API')
+      await this.apiService.login();
+      core.info("Successfully authenticated with the API");
 
       // Get Git information and log start of operation
-      const gitInfo = await this.gitService.getGitInfo()
-      const prNumber = this.githubService.getPullRequestNumber()
-      if (prNumber) {
+      const gitInfo = await this.gitService.getGitInfo();
+      const prNumber = this.githubService.getPullRequestNumber();
+
+      if (isDefined(prNumber)) {
         const workflowRunId = await this.apiService.logStartOperation(gitInfo, {
-          prNumber
-        })
-        core.info('Successfully logged workflow start')
-        this.workflowRunId = workflowRunId
+          prNumber,
+        });
+
+        core.info("Successfully logged workflow start");
+        this.workflowRunId = workflowRunId;
       } else {
-        const workflowRunId = await this.apiService.logStartOperation(gitInfo)
-        core.info('Successfully logged workflow start')
-        this.workflowRunId = workflowRunId
+        const workflowRunId = await this.apiService.logStartOperation(gitInfo);
+
+        core.info("Successfully logged workflow start");
+        this.workflowRunId = workflowRunId;
       }
     } catch (error) {
       core.warning(
-        'Failed to authenticate or log workflow start: ' +
-          (error instanceof Error ? error.message : 'Unknown error')
-      )
+        "Failed to authenticate or log workflow start: " + (error instanceof Error ? error.message : "Unknown error"),
+      );
       // Continue execution even if login fails
     }
   }
@@ -100,18 +100,18 @@ export class AgentService {
    * Generates initial coverage data
    */
   private async generateInitialCoverage(): Promise<void> {
-    core.info('Generating initial coverage...')
-    await this.scoutService.generateCoverage()
-    const coverageTree = await this.scoutService.getCoverageTree()
+    core.info("Generating initial coverage...");
+    await this.scoutService.generateCoverage();
+    const coverageTree = await this.scoutService.getCoverageTree();
 
     if (!coverageTree) {
-      throw new Error('Failed to generate initial coverage tree')
+      throw new Error("Failed to generate initial coverage tree");
     }
 
     // Store initial coverage for comparison
-    this.initialCoverage = coverageTree['/']?.percentage ?? undefined
-    core.setOutput('pre-coverage', this.initialCoverage)
-    core.info(`Initial coverage: ${this.initialCoverage}%`)
+    this.initialCoverage = coverageTree["/"]?.percentage ?? undefined;
+    core.setOutput("pre-coverage", this.initialCoverage);
+    core.info(`Initial coverage: ${this.initialCoverage}%`);
   }
 
   /**
@@ -131,29 +131,28 @@ export class AgentService {
 
     try {
       // Get changed files from PR
-      const changedFilesResult =
-        await this.changedFilesService.getChangedFilesFromPR()
+      const changedFilesResult = await this.changedFilesService.getChangedFilesFromPR();
 
       if (changedFilesResult.success && changedFilesResult.data) {
-        const { data: changedFilesData } = changedFilesResult
+        const { data: changedFilesData } = changedFilesResult;
 
         // Log PR context information
-        core.info(`PR Context: PR #${changedFilesResult.prNumber}`)
+        core.info(`PR Context: PR #${changedFilesResult.prNumber}`);
 
         // Analyze coverage for changed files
-        const config = this.configService.getConfig()
-        const coverageTree = await this.scoutService.getCoverageTree()
+        const config = this.configService.getConfig();
+        const coverageTree = await this.scoutService.getCoverageTree();
+
         if (!coverageTree) {
-          throw new Error('Failed to get coverage tree for analysis')
+          throw new Error("Failed to get coverage tree for analysis");
         }
-        const filteredTestablesResult =
-          await this.coverageAnalysisService.analyzeChangedFiles(
-            coverageTree,
-            changedFilesData.files,
-            {
-              coverageThreshold: config.coverageThreshold
-            }
-          )
+        const filteredTestablesResult = await this.coverageAnalysisService.analyzeChangedFiles(
+          coverageTree,
+          changedFilesData.files,
+          {
+            coverageThreshold: config.coverageThreshold,
+          },
+        );
 
         // Log the changed files for debugging
         core.debug(
@@ -204,19 +203,11 @@ export class AgentService {
         return result
       } else {
         // Handle failure cases
-        if (changedFilesResult.error) {
-          if (
-            changedFilesResult.error.includes(
-              'Not running in pull request context'
-            )
-          ) {
-            core.info(
-              'Not running in pull request context, skipping file analysis'
-            )
+        if (isDefined(changedFilesResult.error)) {
+          if (changedFilesResult.error.includes("Not running in pull request context")) {
+            core.info("Not running in pull request context, skipping file analysis");
           } else {
-            core.warning(
-              `Failed to get changed files: ${changedFilesResult.error}`
-            )
+            core.warning(`Failed to get changed files: ${changedFilesResult.error}`);
           }
         }
         return []
@@ -245,25 +236,24 @@ export class AgentService {
    * Generates final coverage and logs the comparison
    */
   private async generateFinalCoverageAndLog(): Promise<void> {
-    core.info('Generating final coverage...')
-    await this.scoutService.generateCoverage()
-    const postCoverageTree = await this.scoutService.getCoverageTree()
+    core.info("Generating final coverage...");
+    await this.scoutService.generateCoverage();
+    const postCoverageTree = await this.scoutService.getCoverageTree();
 
     if (!postCoverageTree) {
-      throw new Error('Failed to generate final coverage tree')
+      throw new Error("Failed to generate final coverage tree");
     }
 
     // Set post-coverage output
-    const finalCoverage = postCoverageTree['/']?.percentage
-    core.setOutput('post-coverage', finalCoverage)
+    const finalCoverage = postCoverageTree["/"]?.percentage;
+
+    core.setOutput("post-coverage", finalCoverage);
 
     // Log coverage comparison
-    if (this.initialCoverage !== undefined) {
-      core.info(
-        `Coverage comparison: ${this.initialCoverage}% → ${finalCoverage}%`
-      )
+    if (this.initialCoverage === undefined) {
+      core.info(`Final coverage: ${finalCoverage}%`);
     } else {
-      core.info(`Final coverage: ${finalCoverage}%`)
+      core.info(`Coverage comparison: ${this.initialCoverage}% → ${finalCoverage}%`);
     }
   }
 
@@ -271,19 +261,17 @@ export class AgentService {
    * Logs the end of operation
    */
   private async logEndOperation(): Promise<void> {
-    if (this.workflowRunId) {
+    if (isDefined(this.workflowRunId)) {
       try {
-        await this.apiService.logEndOperation(this.workflowRunId)
-        core.info('Successfully logged workflow end')
+        await this.apiService.logEndOperation(this.workflowRunId);
+        core.info("Successfully logged workflow end");
       } catch (error) {
-        core.warning(
-          `Failed to log workflow end: ${error instanceof Error ? error.message : 'Unknown error'}`
-        )
+        core.warning(`Failed to log workflow end: ${error instanceof Error ? error.message : "Unknown error"}`);
       }
     }
   }
 
   // Private properties to store state during the flow
-  private workflowRunId: string | undefined
-  private initialCoverage: number | undefined
+  private workflowRunId: string | undefined;
+  private initialCoverage: number | undefined;
 }

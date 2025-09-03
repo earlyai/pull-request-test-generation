@@ -1,0 +1,14 @@
+name: Conventional Commit
+on:
+  pull_request_target:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - labeled
+      - unlabeled
+
+
+jobs:
+  check-pr-title:
+    uses: earlyai/gha-workflows/.github/workflows/conventional-commit.yml@master

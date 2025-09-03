@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from "zod";
 
 /**
  * Schema for user information returned from the backend
@@ -11,23 +11,23 @@ export const UserInfoSchema = z.object({
   lastName: z.string(),
   subscription: z.object({
     planName: z.string(),
-    planType: z.string()
+    planType: z.string(),
   }),
   role: z.number(),
   quota: z.object({
     percent: z.number(),
     availableAmount: z.number(),
     initialLeftover: z.number(),
-    limit: z.number()
+    limit: z.number(),
   }),
   team: z.object({
     id: z.string(),
-    name: z.string()
+    name: z.string(),
   }),
-  roles: z.array(z.string())
-})
+  roles: z.array(z.string()),
+});
 
 /**
  * Type for user information returned from the backend
  */
-export type UserInfo = z.infer<typeof UserInfoSchema>
+export type UserInfo = z.infer<typeof UserInfoSchema>;

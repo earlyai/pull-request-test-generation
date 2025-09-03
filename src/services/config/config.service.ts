@@ -1,18 +1,20 @@
-import { injectable } from 'inversify'
-import * as core from '@actions/core'
-import type { IConfigService, Config } from './config.types.js'
-import { ConfigSchema } from './config.types.js'
-import { isEmpty } from '@earlyai/core'
+import { injectable } from "inversify";
+
+import * as core from "@actions/core";
+import { isEmpty } from "@earlyai/core";
+
+import type { Config, IConfigService } from "./config.types.js";
+import { ConfigSchema } from "./config.types.js";
 
 /**
  * Configuration service for retrieving and validating GitHub Actions configuration
  */
-@injectable('Singleton')
+@injectable("Singleton")
 export class ConfigService implements IConfigService {
-  private readonly config: Config
+  private readonly config: Config;
 
   constructor() {
-    this.config = this.initializeConfig()
+    this.config = this.initializeConfig();
   }
 
   /**
@@ -20,7 +22,7 @@ export class ConfigService implements IConfigService {
    * @returns Validated configuration
    */
   public getConfig(): Config {
-    return this.config
+    return this.config;
   }
 
   /**
@@ -29,7 +31,7 @@ export class ConfigService implements IConfigService {
    * @returns The configuration value or undefined if not found
    */
   public getConfigValue<K extends keyof Config>(key: K): Config[K] | undefined {
-    return this.config[key]
+    return this.config[key];
   }
 
   /**
@@ -39,24 +41,26 @@ export class ConfigService implements IConfigService {
   private initializeConfig(): Config {
     try {
       // Get raw configuration values from GitHub Actions inputs
-      const rawConfig = this.getRawConfigFromInputs()
-      core.setSecret(rawConfig.token)
-      core.setSecret(rawConfig.secretToken)
+      const rawConfig = this.getRawConfigFromInputs();
+
+      core.setSecret(rawConfig.token);
+      core.setSecret(rawConfig.secretToken);
 
       // Validate using Zod schema (which handles defaults)
-      const validatedConfig = ConfigSchema.parse(rawConfig)
-      core.info('Configuration validated successfully')
-      core.debug(`Configuration: ${JSON.stringify(validatedConfig, null, 2)}`)
+      const validatedConfig = ConfigSchema.parse(rawConfig);
 
-      return validatedConfig
+      core.info("Configuration validated successfully");
+      core.debug(`Configuration: ${JSON.stringify(validatedConfig, null, 2)}`);
+
+      return validatedConfig;
     } catch (error) {
       if (error instanceof Error) {
-        core.warning(`Configuration validation failed: ${error.message}`)
+        core.warning(`Configuration validation failed: ${error.message}`);
       } else {
-        core.warning('Configuration validation failed with unknown error')
+        core.warning("Configuration validation failed with unknown error");
       }
 
-      throw error
+      throw error;
     }
   }
 
@@ -66,22 +70,20 @@ export class ConfigService implements IConfigService {
    */
   private getRawConfigFromInputs(): Record<string, string> {
     const config = {
-      testStructure: core.getInput('test-structure'),
-      testFramework: core.getInput('test-framework'),
-      testSuffix: core.getInput('test-suffix'),
-      testFileName: core.getInput('test-file-name'),
-      calculateCoverage: core.getInput('calculate-coverage'),
-      coverageThreshold: core.getInput('coverage-threshold'),
-      requestSource: 'CLI', // Fixed value for GitHub Actions
-      scoutConcurrency: core.getInput('scout-concurrency'),
-      backendURL: core.getInput('base-url'),
-      secretToken: core.getInput('apiKey'),
-      token: core.getInput('token') || (process.env.GITHUB_TOKEN as string)
-    }
+      testStructure: core.getInput("test-structure"),
+      testFramework: core.getInput("test-framework"),
+      testSuffix: core.getInput("test-suffix"),
+      testFileName: core.getInput("test-file-name"),
+      calculateCoverage: core.getInput("calculate-coverage"),
+      coverageThreshold: core.getInput("coverage-threshold"),
+      requestSource: "CLI", // Fixed value for GitHub Actions
+      scoutConcurrency: core.getInput("scout-concurrency"),
+      backendURL: core.getInput("base-url"),
+      secretToken: core.getInput("apiKey"),
+      token: core.getInput("token") || (process.env.GITHUB_TOKEN as string),
+    };
 
     // Filter out empty strings to let Zod handle defaults
-    return Object.fromEntries(
-      Object.entries(config).filter(([, value]) => !isEmpty(value))
-    )
+    return Object.fromEntries(Object.entries(config).filter(([, value]) => !isEmpty(value)));
   }
 }
