@@ -27,7 +27,7 @@ export class ApiService {
 
     //use config to get baseURL
     this.axiosInstance = axios.create({
-      baseURL: this.configService.getConfigValue('baseURL'),
+      baseURL: this.configService.getConfigValue('backendURL'),
       headers: {
         'Content-Type': 'application/json'
       }
@@ -56,7 +56,7 @@ export class ApiService {
    * @throws Error if authentication fails
    */
   public async login(): Promise<void> {
-    const apiKey = this.configService.getConfigValue('apiKey')
+    const apiKey = this.configService.getConfigValue('secretToken')
     if (!apiKey) {
       throw new Error('API key is required but not configured')
     }
@@ -277,7 +277,7 @@ export class ApiService {
 
   public getBaseUrl(): string {
     return (
-      this.configService.getConfigValue('baseURL') ||
+      this.configService.getConfigValue('backendURL') ||
       'https://api.startearly.ai'
     )
   }

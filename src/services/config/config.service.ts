@@ -41,11 +41,10 @@ export class ConfigService implements IConfigService {
       // Get raw configuration values from GitHub Actions inputs
       const rawConfig = this.getRawConfigFromInputs()
       core.setSecret(rawConfig.token)
-      core.setSecret(rawConfig.apiKey)
+      core.setSecret(rawConfig.secretToken)
 
       // Validate using Zod schema (which handles defaults)
       const validatedConfig = ConfigSchema.parse(rawConfig)
-
       core.info('Configuration validated successfully')
       core.debug(`Configuration: ${JSON.stringify(validatedConfig, null, 2)}`)
 
@@ -75,8 +74,8 @@ export class ConfigService implements IConfigService {
       coverageThreshold: core.getInput('coverage-threshold'),
       requestSource: 'CLI', // Fixed value for GitHub Actions
       scoutConcurrency: core.getInput('scout-concurrency'),
-      baseURL: core.getInput('base-url'),
-      apiKey: core.getInput('apiKey'),
+      backendURL: core.getInput('base-url'),
+      secretToken: core.getInput('apiKey'),
       token: core.getInput('token') || (process.env.GITHUB_TOKEN as string)
     }
 
