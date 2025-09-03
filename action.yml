@@ -45,7 +45,7 @@ inputs:
     description: Base URL for the API endpoint
     required: false
     default: 'https://api.startearly.ai'
-  githubToken:
+  token:
     description:
       GitHub token for accessing PR information (defaults to GITHUB_TOKEN)
     required: false

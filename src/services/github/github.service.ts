@@ -1,3 +1,4 @@
+import { injectable, inject } from 'inversify'
 import * as core from '@actions/core'
 import * as github from '@actions/github'
 import type {
@@ -7,20 +8,31 @@ import type {
   ChangedFile
 } from './github.types.js'
 import { DEFAULT_FILE_FILTER_CONFIG } from './github.types.js'
+import { ConfigService } from '../config/config.service.js'
 
 /**
  * GitHub service for pull request operations
  * Handles context detection, file retrieval, and filtering
  */
+@injectable()
 export class GitHubService implements IGitHubService {
-  private readonly octokit: ReturnType<typeof github.getOctokit>
-  private readonly context: typeof github.context
+  private octokit: ReturnType<typeof github.getOctokit>
+  private context: typeof github.context
 
   /**
    * Creates a new GitHub service instance
-   * @param token GitHub token for authentication
    */
-  public constructor(token: string) {
+  public constructor(
+    @inject(ConfigService) private readonly configService: ConfigService
+  ) {
+    // Get token from config service
+    const token =
+      this.configService.getConfigValue('token') || process.env.GITHUB_TOKEN
+    if (!token) {
+      throw new Error(
+        'GitHub token is required. Set GITHUB_TOKEN environment variable or configure token in settings.'
+      )
+    }
     this.octokit = github.getOctokit(token)
     this.context = github.context
   }

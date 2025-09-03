@@ -1,3 +1,4 @@
+import { injectable } from 'inversify'
 import * as core from '@actions/core'
 import type {
   ICoverageAnalysisService,
@@ -10,6 +11,7 @@ import { CoverageReport, CoverageReaderFileReport } from '@earlyai/ts-scout'
 /**
  * Service for analyzing coverage data and filtering testables based on coverage threshold
  */
+@injectable()
 export class CoverageAnalysisService implements ICoverageAnalysisService {
   /**
    * Analyzes changed files and filters testables based on coverage threshold

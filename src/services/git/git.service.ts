@@ -1,3 +1,4 @@
+import { injectable } from 'inversify'
 import * as core from '@actions/core'
 import { exec } from 'child_process'
 import { promisify } from 'util'
@@ -8,6 +9,7 @@ const execAsync = promisify(exec)
 /**
  * Service for gathering Git repository information
  */
+@injectable()
 export class GitService implements IGitService {
   /**
    * Gets Git information from the local repository

@@ -103,8 +103,9 @@ export const ConfigSchema = z.object({
     .default('5')
     .transform((value) => Number.parseInt(value, 10))
     .pipe(z.number().min(SCOUT_CONCURRENCY.MIN).max(SCOUT_CONCURRENCY.MAX)),
-  baseURL: z.string().default('https://api.startearly.ai'),
-  apiKey: z.string().default('')
+  backendURL: z.string().default('https://api.startearly.ai'),
+  secretToken: z.string().default(''),
+  token: z.string()
 })
 
 export type Config = z.infer<typeof ConfigSchema>
@@ -125,16 +126,4 @@ export interface IConfigService {
    * @returns The configuration value or undefined if not found
    */
   getConfigValue<K extends keyof Config>(key: K): Config[K] | undefined
-
-  /**
-   * Checks if the configuration is valid
-   * @returns True if configuration is valid, false otherwise
-   */
-  isValid(): boolean
-
-  /**
-   * Gets validation errors if any
-   * @returns Array of validation error messages
-   */
-  getValidationErrors(): readonly string[]
 }

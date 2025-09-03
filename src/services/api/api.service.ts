@@ -1,3 +1,4 @@
+import { injectable, inject } from 'inversify'
 import axios, {
   AxiosHeaders,
   AxiosInstance,
@@ -12,21 +13,21 @@ import { isDefined } from '@earlyai/core'
 import { UserInfo, UserInfoSchema } from './api.types.js'
 import { ConfigService } from '@/services/config/config.service.js'
 import { GitInfo } from '@/services/git/git.types.js'
-
 /**
  * API client for making authenticated requests to the backend
  */
+@injectable()
 export class ApiService {
   private readonly axiosInstance: AxiosInstance
   private readonly configService: ConfigService
   private idToken: string | undefined
 
-  public constructor(configService: ConfigService) {
+  public constructor(@inject(ConfigService) configService: ConfigService) {
     this.configService = configService
 
     //use config to get baseURL
     this.axiosInstance = axios.create({
-      baseURL: this.configService.getConfigValue('baseURL'),
+      baseURL: this.configService.getConfigValue('backendURL'),
       headers: {
         'Content-Type': 'application/json'
       }
@@ -55,7 +56,7 @@ export class ApiService {
    * @throws Error if authentication fails
    */
   public async login(): Promise<void> {
-    const apiKey = this.configService.getConfigValue('apiKey')
+    const apiKey = this.configService.getConfigValue('secretToken')
     if (!apiKey) {
       throw new Error('API key is required but not configured')
     }
@@ -276,7 +277,7 @@ export class ApiService {
 
   public getBaseUrl(): string {
     return (
-      this.configService.getConfigValue('baseURL') ||
+      this.configService.getConfigValue('backendURL') ||
       'https://api.startearly.ai'
     )
   }
@@ -292,15 +293,19 @@ export class ApiService {
    * @param gitInfo Git repository information
    * @returns Promise resolving to the workflow run ID
    */
-  public async logStartOperation(gitInfo: GitInfo): Promise<string> {
+  public async logStartOperation(
+    gitInfo: GitInfo,
+    githubContext?: { prNumber: number }
+  ): Promise<string> {
     const config = this.configService.getConfig()
 
     // Get PR URL from GitHub context if available
     const prUrl =
       process.env.GITHUB_SERVER_URL &&
       process.env.GITHUB_REPOSITORY &&
-      process.env.GITHUB_EVENT_NAME === 'pull_request'
-        ? `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/pull/${process.env.GITHUB_EVENT_PATH ? JSON.parse(process.env.GITHUB_EVENT_PATH).number : ''}`
+      process.env.GITHUB_EVENT_NAME === 'pull_request' &&
+      githubContext?.prNumber
+        ? `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/pull/${githubContext.prNumber}`
         : undefined
 
     const requestData = {
