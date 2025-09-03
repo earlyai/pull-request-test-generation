@@ -1,0 +1,49 @@
+name: Code Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  code-checks:
+    permissions:
+      contents: read
+      packages: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Authenticate npm
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
+          echo "@earlyai:registry=https://npm.pkg.github.com" >> ~/.npmrc
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline
+
+      - name: Run lint check
+        run: npm run check:lint
+
+      - name: Run prettier check
+        run: npm run check:prettier
+
+      - name: Run TypeScript check
+        run: npm run check:ts
+
+      - name: Run tests
+        run: npm run test
+
+      - name: Test Local Action
+        uses: ./
+        with:
+          apiKey: 123
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Print Output
+        id: output
+        run: echo "${{ steps.test-action.outputs.pre-coverage }}"
