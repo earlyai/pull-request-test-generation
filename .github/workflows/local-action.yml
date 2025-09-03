@@ -26,9 +26,6 @@ jobs:
       - name: Install dependencies
         run: npm ci --prefer-offline
 
-      - name: Build
-        run: npm run build
-
       - name: Test Local Action
         id: test-action
         uses: ./
