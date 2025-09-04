@@ -1,10 +1,11 @@
-import { defineConfig } from 'tsdown'
+import { defineConfig } from "tsdown";
 
 export default defineConfig({
-  entry: ['src/index.ts'],
-  outDir: 'dist',
-  format: ['cjs'],
+  entry: ["src/index.ts"],
+  outDir: "dist",
+  format: ["cjs"],
   minify: true,
   sourcemap: true,
-  failOnWarn: true
-})
+  failOnWarn: true,
+  noExternal: () => true,
+});
