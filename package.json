@@ -42,10 +42,11 @@
     "@actions/core": "^1.11.1",
     "@actions/github": "^6.0.1",
     "@earlyai/core": "^1.5.0",
-    "@earlyai/ts-agent": "^0.1.0",
+    "@earlyai/ts-agent": "^0.2.0",
     "axios": "^1.11.0",
     "axios-retry": "^4.5.0",
     "inversify": "^7.9.1",
+    "source-map-support": "^0.5.21",
     "zod": "^4.1.1"
   },
   "devDependencies": {

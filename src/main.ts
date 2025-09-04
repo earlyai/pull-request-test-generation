@@ -4,8 +4,6 @@ import { isDefined } from "@earlyai/core";
 import { container } from "./container.js";
 import { AgentService } from "./services/agent/agent.service.js";
 
-import "reflect-metadata";
-
 /**
  * The main function for the action.
  *
