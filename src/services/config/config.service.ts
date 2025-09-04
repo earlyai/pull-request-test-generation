@@ -79,7 +79,7 @@ export class ConfigService implements IConfigService {
       requestSource: "CLI", // Fixed value for GitHub Actions
       scoutConcurrency: core.getInput("scout-concurrency"),
       backendURL: core.getInput("base-url"),
-      secretToken: core.getInput("apiKey"),
+      secretToken: core.getInput("api-key"),
       token: core.getInput("token") || (process.env.GITHUB_TOKEN as string),
     };
 

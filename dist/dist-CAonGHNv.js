@@ -1,0 +1,2 @@
+const e=require(`./chunk-BwrM4yoD.js`),t=e.__toESM(require(`node:crypto`));function n(e){if(r)return r(i,e,a);let n=(0,t.createHash)(i).update(e);return globalThis.process?.versions?.webcontainer?n.digest().toString(a):n.digest(a)}var r,i,a,o=e.__esmMin((()=>{r=globalThis.process?.getBuiltinModule?.(`crypto`)?.hash,i=`sha256`,a=`base64url`})),s=e.__esmMin((()=>{o()}));s(),exports.digest=n;
+//# sourceMappingURL=dist-CAonGHNv.js.map

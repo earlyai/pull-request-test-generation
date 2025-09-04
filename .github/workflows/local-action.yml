@@ -30,7 +30,7 @@ jobs:
         id: test-action
         uses: ./
         with:
-          apiKey: ${{ secrets.EARLY_QA_API_KEY }}
+          api-key: ${{ secrets.EARLY_QA_API_KEY }}
           token: ${{ secrets.GITHUB_TOKEN }}
           base-url: https://api-qa.startearly.ai
 

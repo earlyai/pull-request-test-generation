@@ -9,7 +9,7 @@ branding:
 
 # Define your inputs here.
 inputs:
-  apiKey:
+  api-key:
     description: API key for authenticating with the backend service
     required: true
     default: ''
