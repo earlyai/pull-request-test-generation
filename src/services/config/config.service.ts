@@ -2,42 +2,27 @@ import { injectable } from "inversify";
 
 import * as core from "@actions/core";
 import { isEmpty } from "@earlyai/core";
+import { RequestSource } from "@earlyai/ts-agent";
 
-import type { Config, IConfigService } from "./config.types.js";
-import { ConfigSchema } from "./config.types.js";
+import type { Config } from "./config.types";
+import { ConfigSchema } from "./config.types";
 
-/**
- * Configuration service for retrieving and validating GitHub Actions configuration
- */
 @injectable("Singleton")
-export class ConfigService implements IConfigService {
+export class ConfigService {
   private readonly config: Config;
 
   constructor() {
     this.config = this.initializeConfig();
   }
 
-  /**
-   * Gets the validated configuration from GitHub Actions inputs
-   * @returns Validated configuration
-   */
   public getConfig(): Config {
     return this.config;
   }
 
-  /**
-   * Gets a specific configuration value by key
-   * @param key The configuration key
-   * @returns The configuration value or undefined if not found
-   */
   public getConfigValue<K extends keyof Config>(key: K): Config[K] | undefined {
     return this.config[key];
   }
 
-  /**
-   * Initializes and validates configuration from GitHub Actions inputs
-   * @returns Validated configuration
-   */
   private initializeConfig(): Config {
     try {
       // Get raw configuration values from GitHub Actions inputs
@@ -64,10 +49,6 @@ export class ConfigService implements IConfigService {
     }
   }
 
-  /**
-   * Retrieves raw configuration values from GitHub Actions inputs
-   * @returns Raw configuration object
-   */
   private getRawConfigFromInputs(): Record<string, string> {
     const config = {
       testStructure: core.getInput("test-structure"),
@@ -76,14 +57,13 @@ export class ConfigService implements IConfigService {
       testFileName: core.getInput("test-file-name"),
       calculateCoverage: core.getInput("calculate-coverage"),
       coverageThreshold: core.getInput("coverage-threshold"),
-      requestSource: "CLI", // Fixed value for GitHub Actions
-      scoutConcurrency: core.getInput("scout-concurrency"),
-      backendURL: core.getInput("base-url"),
+      requestSource: RequestSource.CLI,
+      concurrency: core.getInput("concurrency"),
+      backendURL: core.getInput("base-host"),
       secretToken: core.getInput("api-key"),
-      token: core.getInput("token") || (process.env.GITHUB_TOKEN as string),
+      githubToken: core.getInput("token") || (process.env.GITHUB_TOKEN as string),
     };
 
-    // Filter out empty strings to let Zod handle defaults
     return Object.fromEntries(Object.entries(config).filter(([, value]) => !isEmpty(value)));
   }
 }

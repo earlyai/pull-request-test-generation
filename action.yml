@@ -1,18 +1,16 @@
 name: TypeScript Agent Action
 description: GitHub Action for TypeScript analysis and PR file detection
-author: Your name or organization here
+author: earlyai
 
 # Add your action's branding here. This will appear on the GitHub Marketplace.
 branding:
   icon: heart
   color: red
 
-# Define your inputs here.
 inputs:
   api-key:
     description: API key for authenticating with the backend service
     required: true
-    default: ''
   test-structure:
     description: Test file structure (siblingFolder or rootFolder)
     required: false
@@ -37,21 +35,19 @@ inputs:
     description: Coverage threshold percentage (0-100)
     required: false
     default: '0'
-  scout-concurrency:
-    description: Number of concurrent scout processes (1-50)
+  concurrency:
+    description: Number of concurrent processes (1-50)
     required: false
     default: '5'
-  base-url:
-    description: Base URL for the API endpoint
+  base-host:
+    description: Base host for the API endpoint
     required: false
     default: 'https://api.startearly.ai'
   token:
     description:
       GitHub token for accessing PR information (defaults to GITHUB_TOKEN)
     required: false
-    default: ''
 
-# Define your outputs here.
 outputs:
   pre-coverage:
     description: Coverage data before analysis

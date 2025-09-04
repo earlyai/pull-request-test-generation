@@ -32,7 +32,7 @@ jobs:
         with:
           api-key: ${{ secrets.EARLY_QA_API_KEY }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          base-url: https://api-qa.startearly.ai
+          base-host: https://api-qa.startearly.ai
 
       - name: Print Output
         id: output
