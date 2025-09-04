@@ -22,7 +22,7 @@ export class GitHubService implements IGitHubService {
    */
   public constructor(@inject(ConfigService) private readonly configService: ConfigService) {
     // Get token from config service
-    const token = this.configService.getConfigValue("token") ?? process.env.GITHUB_TOKEN;
+    const token = this.configService.getConfigValue("githubToken") ?? process.env.GITHUB_TOKEN;
 
     if (!isDefined(token)) {
       throw new Error(
