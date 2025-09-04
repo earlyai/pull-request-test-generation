@@ -62,6 +62,7 @@ export class ConfigService {
       backendURL: core.getInput("base-host"),
       secretToken: core.getInput("api-key"),
       githubToken: core.getInput("token") || (process.env.GITHUB_TOKEN as string),
+      modelName: core.getInput("model-name"),
     };
 
     return Object.fromEntries(Object.entries(config).filter(([, value]) => !isEmpty(value)));

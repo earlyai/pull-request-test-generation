@@ -47,6 +47,9 @@ inputs:
     description:
       GitHub token for accessing PR information (defaults to GITHUB_TOKEN)
     required: false
+  model-name:
+    description: Model name to use for analysis
+    required: false
 
 outputs:
   pre-coverage:

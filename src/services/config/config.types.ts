@@ -24,6 +24,7 @@ export const ConfigSchema = z.object({
   concurrency: z.coerce.number().min(CONCURRENCY.MIN).max(CONCURRENCY.MAX),
   backendURL: z.string(),
   secretToken: z.string(),
+  modelName: z.string().optional(),
   // github action fields
   githubToken: z.string(),
 });
