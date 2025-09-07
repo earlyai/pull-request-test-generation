@@ -26,3 +26,13 @@ export interface IGitService {
    */
   getGitInfo(): Promise<GitInfo>;
 }
+
+/**
+ * Result of committing files
+ */
+export interface CommitResult {
+  /** List of file paths that were committed */
+  readonly committedFiles: readonly string[];
+  /** Error message if an error occurred, empty string if successful */
+  readonly error: string;
+}

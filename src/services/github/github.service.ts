@@ -159,4 +159,12 @@ export class GitHubService implements IGitHubService {
       })
       .map((file) => file.path);
   }
+
+  public getRefName(): string | undefined {
+    if (!this.isPullRequestContext()) {
+      return;
+    }
+
+    return this.context.payload.pull_request?.head?.ref;
+  }
 }

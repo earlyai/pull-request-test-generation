@@ -19,7 +19,7 @@ export class ConfigService {
     return this.config;
   }
 
-  public getConfigValue<K extends keyof Config>(key: K): Config[K] | undefined {
+  public getConfigValue<K extends keyof Config>(key: K): Config[K] {
     return this.config[key];
   }
 
@@ -61,8 +61,10 @@ export class ConfigService {
       concurrency: core.getInput("concurrency"),
       backendURL: core.getInput("base-host"),
       secretToken: core.getInput("api-key"),
+      autoCommit: core.getInput("auto-commit"),
       githubToken: core.getInput("token") || (process.env.GITHUB_TOKEN as string),
       modelName: core.getInput("model-name"),
+      maxTestables: core.getInput("max-testables"),
     };
 
     return Object.fromEntries(Object.entries(config).filter(([, value]) => !isEmpty(value)));

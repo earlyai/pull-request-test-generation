@@ -7,11 +7,14 @@ on:
 jobs:
   local-action:
     permissions:
-      contents: read
+      contents: write
       packages: read
+      pull-requests: read
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
       - name: Authenticate npm
         run: |
           echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
@@ -33,6 +36,7 @@ jobs:
           api-key: ${{ secrets.EARLY_QA_API_KEY }}
           token: ${{ secrets.GITHUB_TOKEN }}
           base-host: https://api-qa.startearly.ai
+          max-testables: 3
 
       - name: Print Output
         id: output

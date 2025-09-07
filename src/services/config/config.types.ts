@@ -27,6 +27,24 @@ export const ConfigSchema = z.object({
   modelName: z.string().optional(),
   // github action fields
   githubToken: z.string(),
+  autoCommit: z.string().transform((value) => value === "true"),
+  /** Maximum number of testable files to generate tests for. -1 means unlimited. */
+  maxTestables: z.coerce
+    .number()
+    .int()
+    .refine((value) => value === -1 || value > 0, {
+      message: "maxTestables must be -1 (unlimited) or a positive integer",
+    }),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;
+
+/**
+ * Result of committing files
+ */
+export interface CommitResult {
+  /** List of file paths that were committed */
+  readonly committedFiles: readonly string[];
+  /** Error message if an error occurred, empty string if successful */
+  readonly error: string;
+}
