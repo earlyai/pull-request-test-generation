@@ -53,7 +53,16 @@ export class AgentService {
       // Step 4: TODO: Generate tests (not implemented yet in ts-scout)
       await this.generateTests(filteredTestablesResult);
 
-      // Step 5: Run coverage again and log results
+      // Step 5: Commit files (if auto-commit is enabled)
+      if (this.configService.getConfigValue("autoCommit")) {
+        const refName = this.githubService.getRefName();
+
+        await this.gitService.commitFiles(refName);
+      } else {
+        core.info("Auto-commit is disabled - skipping commit step");
+      }
+
+      // Step 6: Run coverage again and log results
       await this.generateFinalCoverageAndLog();
     } catch (error) {
       core.error(`Agent flow failed: ${error instanceof Error ? error.message : "Unknown error"}`);

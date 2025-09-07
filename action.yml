@@ -50,6 +50,10 @@ inputs:
   model-name:
     description: Model name to use for analysis
     required: false
+  auto-commit:
+    description: Whether to auto-commit files (true or false)
+    required: false
+    default: 'true'
 
 outputs:
   pre-coverage:

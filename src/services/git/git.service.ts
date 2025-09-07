@@ -4,8 +4,9 @@ import { promisify } from "node:util";
 import { injectable } from "inversify";
 
 import * as core from "@actions/core";
+import { isDefined } from "@earlyai/core";
 
-import { GitInfo, IGitService } from "./git.types.js";
+import { CommitResult, GitInfo, IGitService } from "./git.types.js";
 
 const execAsync = promisify(exec);
 
@@ -186,5 +187,50 @@ export class GitService implements IGitService {
       owner: owner || "",
       sha,
     };
+  }
+
+  /**
+   * Commits files that are both modified and match the .early. pattern
+   * @returns Promise resolving to commit result with file count and error status
+   */
+  public async commitFiles(branch?: string): Promise<CommitResult> {
+    try {
+      //init git
+      if (isDefined(branch)) {
+        await execAsync(`git checkout ${branch}`);
+      }
+      await execAsync('git config user.name "github-actions[bot]"');
+      await execAsync('git config user.email "github-actions[bot]@users.noreply.github.com"');
+
+      const { stdout: modifiedFiles } = await execAsync("git ls-files --others --exclude-standard --modified");
+      const files = modifiedFiles.trim().split("\n").filter(Boolean);
+
+      const earlyFiles = files.filter((file) => file.includes(".early."));
+
+      if (earlyFiles.length === 0) {
+        await execAsync('git commit --allow-empty -m "chore: add early catch tests"');
+        core.info("No files to commit - created empty commit");
+
+        return { committedFiles: [], error: "" };
+      }
+
+      for (const file of earlyFiles) {
+        await execAsync(`git add "${file}"`);
+      }
+
+      await execAsync('git commit --no-verify -m "chore: add early-catch tests"');
+
+      core.info(`Committed ${earlyFiles.length} files`);
+
+      await execAsync("git push --no-verify");
+
+      return { committedFiles: earlyFiles, error: "" };
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+
+      core.error(`Failed to commit files: ${errorMessage}`);
+
+      return { committedFiles: [], error: errorMessage };
+    }
   }
 }
