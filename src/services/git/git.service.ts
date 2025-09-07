@@ -208,7 +208,7 @@ export class GitService implements IGitService {
       const earlyFiles = files.filter((file) => file.includes(".early."));
 
       if (earlyFiles.length === 0) {
-        await execAsync('git commit --allow-empty -m "chore: add early catch tests"');
+        await execAsync('git commit --allow-empty -m "chore: add early catch tests [skip ci]"');
         core.info("No files to commit - created empty commit");
 
         return { committedFiles: [], error: "" };
@@ -218,7 +218,7 @@ export class GitService implements IGitService {
         await execAsync(`git add "${file}"`);
       }
 
-      await execAsync('git commit --no-verify -m "chore: add early-catch tests"');
+      await execAsync('git commit --no-verify -m "chore: add early-catch tests [skip ci]"');
 
       core.info(`Committed ${earlyFiles.length} files`);
 
