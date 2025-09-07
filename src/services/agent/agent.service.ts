@@ -216,6 +216,15 @@ export class AgentService {
           }
         }
 
+        // Apply maxTestables limit if configured
+        const maxTestables = config.maxTestables;
+
+        if (maxTestables !== -1 && result.length > maxTestables) {
+          core.info(`Limiting testables to ${maxTestables} (from ${result.length} total)`);
+
+          return result.slice(0, maxTestables);
+        }
+
         return result;
       } else {
         // Handle failure cases

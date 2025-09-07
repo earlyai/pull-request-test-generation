@@ -64,6 +64,7 @@ export class ConfigService {
       autoCommit: core.getInput("auto-commit"),
       githubToken: core.getInput("token") || (process.env.GITHUB_TOKEN as string),
       modelName: core.getInput("model-name"),
+      maxTestables: core.getInput("max-testables"),
     };
 
     return Object.fromEntries(Object.entries(config).filter(([, value]) => !isEmpty(value)));
