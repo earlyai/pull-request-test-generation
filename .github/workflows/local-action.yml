@@ -36,6 +36,7 @@ jobs:
           api-key: ${{ secrets.EARLY_QA_API_KEY }}
           token: ${{ secrets.GITHUB_TOKEN }}
           base-host: https://api-qa.startearly.ai
+          max-testables: 3
 
       - name: Print Output
         id: output
