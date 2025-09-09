@@ -72,10 +72,6 @@ export class CoverageAnalysisService implements ICoverageAnalysisService {
         `Coverage analysis complete: ${result.filteredCount}/${result.totalAnalyzed} testables below threshold across ${result.filesWithCoverage} files`,
       );
 
-      if (result.filesWithoutCoverage > 0) {
-        core.warning(`${result.filesWithoutCoverage} changed files have no coverage data`);
-      }
-
       return result;
     } catch (error) {
       if (error instanceof Error) {

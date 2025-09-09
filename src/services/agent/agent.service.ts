@@ -48,10 +48,12 @@ export class AgentService {
 
       if (isEmpty(filteredTestablesResult)) {
         core.warning("No filtered testables result");
+
+        return;
       } else {
         core.info(`Filtered testables result count: ${filteredTestablesResult.length}`);
       }
-      // Step 4: TODO: Generate tests (not implemented yet in ts-scout)
+      // Step 4: Generate tests
       await this.generateTests(filteredTestablesResult);
 
       // Step 5: Commit files (if auto-commit is enabled)
@@ -307,7 +309,7 @@ export class AgentService {
     core.setOutput("post-coverage", finalCoverage);
 
     // Log coverage comparison
-    if (this.initialCoverage === undefined) {
+    if (isDefined(this.initialCoverage)) {
       core.info(`Final coverage: ${finalCoverage}%`);
     } else {
       core.info(`Coverage comparison: ${this.initialCoverage}% → ${finalCoverage}%`);
