@@ -48,7 +48,6 @@ export class AgentService {
 
       if (isEmpty(filteredTestablesResult)) {
         core.warning("No filtered testables result");
-        core.setOutput("post-coverage", core.getState("initialCoverage"));
 
         return;
       } else {
@@ -125,8 +124,8 @@ export class AgentService {
 
     // Store initial coverage for comparison
     this.initialCoverage = coverageTree["/"]?.percentage ?? undefined;
-    core.saveState("initialCoverage", this.initialCoverage);
     core.setOutput("pre-coverage", this.initialCoverage);
+    core.setOutput("post-coverage", this.initialCoverage);
     core.info(`Initial coverage: ${this.initialCoverage}%`);
   }
 
