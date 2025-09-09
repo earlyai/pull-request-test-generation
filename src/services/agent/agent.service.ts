@@ -2,7 +2,7 @@ import { inject, injectable } from "inversify";
 
 import * as core from "@actions/core";
 import { isDefined, isEmpty } from "@earlyai/core";
-import { SerializedTestable } from "@earlyai/ts-agent";
+import { CoverageReport, SerializedTestable } from "@earlyai/ts-agent";
 
 import type { ITSAgent } from "@/container.types.js";
 import { TYPES } from "@/container.types.js";
@@ -10,8 +10,9 @@ import { TYPES } from "@/container.types.js";
 import { ApiService } from "../api/api.service.js";
 import { ConfigService } from "../config/config.service.js";
 import { CoverageAnalysisService } from "../coverage-analysis/coverage-analysis.service.js";
+import { FilteredTestable, FilteredTestablesResult } from "../coverage-analysis/coverage-analysis.types.js";
 import { GitService } from "../git/git.service.js";
-import { ChangedFilesService } from "../github/changed-files.service.js";
+import { ChangedFilesResult, ChangedFilesService } from "../github/changed-files.service.js";
 import { GitHubService } from "../github/github.service.js";
 
 /**
@@ -47,10 +48,12 @@ export class AgentService {
 
       if (isEmpty(filteredTestablesResult)) {
         core.warning("No filtered testables result");
+
+        return;
       } else {
         core.info(`Filtered testables result count: ${filteredTestablesResult.length}`);
       }
-      // Step 4: TODO: Generate tests (not implemented yet in ts-scout)
+      // Step 4: Generate tests
       await this.generateTests(filteredTestablesResult);
 
       // Step 5: Commit files (if auto-commit is enabled)
@@ -122,122 +125,37 @@ export class AgentService {
     // Store initial coverage for comparison
     this.initialCoverage = coverageTree["/"]?.percentage ?? undefined;
     core.setOutput("pre-coverage", this.initialCoverage);
+    core.setOutput("post-coverage", this.initialCoverage);
     core.info(`Initial coverage: ${this.initialCoverage}%`);
   }
 
   /**
    * Analyzes changed files from PR and filters based on business logic
    */
-  //TODO: refactor and simplify this
-  //eslint-disable-next-line sonarjs/cognitive-complexity
   private async analyzeChangedFiles(): Promise<
     {
       filePath: string;
       testable: SerializedTestable;
     }[]
   > {
-    const githubToken = core.getInput("token") || process.env.GITHUB_TOKEN;
-
-    if (!isDefined(githubToken)) {
-      core.info("No GitHub token available, skipping changed files analysis");
-
-      return [];
-    }
-
     try {
-      // Get changed files from PR
-      const changedFilesResult = await this.changedFilesService.getChangedFilesFromPR();
+      const changedFilesResult = await this.getChangedFilesFromPR();
 
-      if (changedFilesResult.success && changedFilesResult.data) {
-        const { data: changedFilesData } = changedFilesResult;
-
-        // Log PR context information
-        core.info(`PR Context: PR #${changedFilesResult.prNumber}`);
-
-        // Analyze coverage for changed files
-        const config = this.configService.getConfig();
-        const coverageTree = await this.tsAgent.getCoverageTree();
-
-        if (!coverageTree) {
-          throw new Error("Failed to get coverage tree for analysis");
-        }
-        const filteredTestablesResult = await this.coverageAnalysisService.analyzeChangedFiles(
-          coverageTree,
-          changedFilesData.files,
-          {
-            coverageThreshold: config.coverageThreshold,
-          },
-        );
-
-        // Log the changed files for debugging
-        core.debug(`Changed files: ${JSON.stringify(changedFilesData.files, null, 2)}`);
-        core.debug(`Coverage analysis: ${JSON.stringify(filteredTestablesResult, null, 2)}`);
-        const allTestables: [string, SerializedTestable[]][] = [];
-
-        for (const filePath of changedFilesData.files) {
-          core.debug(`Getting testables for file: ${filePath}`);
-          const fileTestables = await this.tsAgent.getTestables(filePath);
-
-          allTestables.push(...fileTestables);
-        }
-
-        // Create a map of filtered testables by file path and name for quick lookup
-        const filteredTestablesMap = new Map<string, Set<string>>();
-
-        for (const filteredTestable of filteredTestablesResult.testables) {
-          // Normalize file path to match scout service format (add leading slash)
-          const normalizedFilePath = filteredTestable.filePath.startsWith("/")
-            ? filteredTestable.filePath
-            : `/${filteredTestable.filePath}`;
-
-          if (!filteredTestablesMap.has(normalizedFilePath)) {
-            filteredTestablesMap.set(normalizedFilePath, new Set());
-          }
-          const testableSet = filteredTestablesMap.get(normalizedFilePath);
-
-          if (isDefined(testableSet)) {
-            testableSet.add(filteredTestable.name);
-          }
-        }
-        core.debug(`Filtered testables map: ${JSON.stringify(filteredTestablesMap, null, 2)}`);
-
-        // Filter testables to only include those present in filteredTestablesResult
-        const result: { filePath: string; testable: SerializedTestable }[] = [];
-
-        for (const [filePath, testables] of allTestables) {
-          const filteredNames = filteredTestablesMap.get(filePath);
-
-          if (filteredNames) {
-            for (const testable of testables) {
-              if (filteredNames.has(testable.name ?? "")) {
-                result.push({ filePath, testable });
-              }
-            }
-          }
-        }
-
-        // Apply maxTestables limit if configured
-        const maxTestables = config.maxTestables;
-
-        if (maxTestables !== -1 && result.length > maxTestables) {
-          core.info(`Limiting testables to ${maxTestables} (from ${result.length} total)`);
-
-          return result.slice(0, maxTestables);
-        }
-
-        return result;
-      } else {
-        // Handle failure cases
-        if (isDefined(changedFilesResult.error)) {
-          if (changedFilesResult.error.includes("Not running in pull request context")) {
-            core.info("Not running in pull request context, skipping file analysis");
-          } else {
-            core.warning(`Failed to get changed files: ${changedFilesResult.error}`);
-          }
-        }
+      if (!changedFilesResult.success || !isDefined(changedFilesResult.data)) {
+        this.handleChangedFilesFailure(changedFilesResult);
 
         return [];
       }
+
+      const { data: changedFilesData } = changedFilesResult;
+      const { filteredTestables } = await this.analyzeCoverageForChangedFiles(changedFilesData.files);
+
+      const allTestables = await this.collectTestablesForFiles(changedFilesData.files);
+      const filteredTestablesMap = this.createFilteredTestablesMap(filteredTestables.testables);
+
+      const config = this.configService.getConfig();
+
+      return this.filterAndLimitResults(allTestables, filteredTestablesMap, config.maxTestables);
     } catch (error) {
       core.warning(`Error analyzing changed files: ${error instanceof Error ? error.message : "Unknown error"}`);
 
@@ -246,7 +164,124 @@ export class AgentService {
   }
 
   /**
-   * TODO: Generate tests (not implemented yet in ts-scout)
+   * Gets changed files from PR using the changed files service
+   */
+  private async getChangedFilesFromPR(): Promise<ChangedFilesResult> {
+    return await this.changedFilesService.getChangedFilesFromPR();
+  }
+
+  /**
+   * Analyzes coverage for changed files and returns filtered testables
+   */
+  private async analyzeCoverageForChangedFiles(changedFiles: readonly string[]): Promise<{
+    coverageTree: CoverageReport;
+    filteredTestables: FilteredTestablesResult;
+  }> {
+    const config = this.configService.getConfig();
+    const coverageTree = await this.tsAgent.getCoverageTree();
+
+    if (!isDefined(coverageTree)) {
+      throw new Error("Failed to get coverage tree for analysis");
+    }
+
+    const filteredTestablesResult = await this.coverageAnalysisService.analyzeChangedFiles(coverageTree, changedFiles, {
+      coverageThreshold: config.coverageThreshold,
+    });
+
+    return { coverageTree, filteredTestables: filteredTestablesResult };
+  }
+
+  /**
+   * Collects testables for all changed files
+   */
+  private async collectTestablesForFiles(filePaths: readonly string[]): Promise<[string, SerializedTestable[]][]> {
+    const uniqueFilePaths = new Set(filePaths);
+
+    const testablePromises = [...uniqueFilePaths].map(async (filePath) => {
+      core.debug(`Getting testables for file: ${filePath}`);
+      const fileTestables = await this.tsAgent.getTestables(filePath);
+
+      if (isEmpty(fileTestables)) {
+        return;
+      }
+
+      return fileTestables[0];
+    });
+
+    return Promise.all(testablePromises).then((results) => results.filter(isDefined));
+  }
+
+  /**
+   * Creates a map of filtered testables by file path and name for quick lookup
+   */
+  private createFilteredTestablesMap(filteredTestables: readonly FilteredTestable[]): Map<string, Set<string>> {
+    const filteredTestablesMap = new Map<string, Set<string>>();
+
+    for (const filteredTestable of filteredTestables) {
+      const normalizedFilePath = filteredTestable.filePath.startsWith("/")
+        ? filteredTestable.filePath
+        : `/${filteredTestable.filePath}`;
+
+      if (!filteredTestablesMap.has(normalizedFilePath)) {
+        filteredTestablesMap.set(normalizedFilePath, new Set());
+      }
+
+      const testableSet = filteredTestablesMap.get(normalizedFilePath);
+
+      if (isDefined(testableSet)) {
+        testableSet.add(filteredTestable.name);
+      }
+    }
+
+    return filteredTestablesMap;
+  }
+
+  /**
+   * Filters testables based on coverage analysis and applies max testables limit
+   */
+  private filterAndLimitResults(
+    allTestables: [string, SerializedTestable[]][],
+    filteredTestablesMap: Map<string, Set<string>>,
+    maxTestables: number,
+  ): { filePath: string; testable: SerializedTestable }[] {
+    const result: { filePath: string; testable: SerializedTestable }[] = [];
+
+    for (const [filePath, testables] of allTestables) {
+      const filteredNames = filteredTestablesMap.get(filePath);
+
+      if (isDefined(filteredNames)) {
+        for (const testable of testables) {
+          if (filteredNames.has(testable.name ?? "")) {
+            result.push({ filePath, testable });
+          }
+        }
+      }
+    }
+
+    if (maxTestables !== -1 && result.length > maxTestables) {
+      core.info(`Limiting testables to ${maxTestables} (from ${result.length} total)`);
+
+      return result.slice(0, maxTestables);
+    }
+
+    return result;
+  }
+
+  /**
+   * Handles failure cases when getting changed files from PR
+   */
+  private handleChangedFilesFailure(changedFilesResult: ChangedFilesResult): void {
+    if (isDefined(changedFilesResult.error)) {
+      if (changedFilesResult.error.includes("Not running in pull request context")) {
+        core.info("Not running in pull request context, skipping file analysis");
+      } else {
+        core.warning(`Failed to get changed files: ${changedFilesResult.error}`);
+      }
+    }
+  }
+
+  /**
+   * Generate tests
    */
   private async generateTests(
     filteredTestablesResult: {
@@ -273,9 +308,8 @@ export class AgentService {
     const finalCoverage = postCoverageTree["/"]?.percentage;
 
     core.setOutput("post-coverage", finalCoverage);
-
     // Log coverage comparison
-    if (this.initialCoverage === undefined) {
+    if (isDefined(this.initialCoverage)) {
       core.info(`Final coverage: ${finalCoverage}%`);
     } else {
       core.info(`Coverage comparison: ${this.initialCoverage}% → ${finalCoverage}%`);
