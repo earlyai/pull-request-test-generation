@@ -67,18 +67,5 @@ export interface IGitHubService {
  */
 export const DEFAULT_FILE_FILTER_CONFIG: FileFilterConfig = {
   allowedExtensions: [".ts", ".tsx", ".js", ".jsx"],
-  excludePatterns: [
-    "test",
-    "spec",
-    ".test.",
-    ".spec.",
-    ".test.ts",
-    ".spec.ts",
-    ".test.tsx",
-    ".spec.tsx",
-    ".test.js",
-    ".spec.js",
-    ".test.jsx",
-    ".spec.jsx",
-  ],
+  excludePatterns: [".test.", ".spec."],
 } as const;
