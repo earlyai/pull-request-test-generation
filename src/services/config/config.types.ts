@@ -14,6 +14,7 @@ import {
 // defaults are in action.yml
 export const ConfigSchema = z.object({
   // ts-agent fields
+  rootPath: z.string().default(process.env.GITHUB_WORKSPACE ?? process.cwd()),
   testStructure: z.enum(TestStructureVariant),
   testFramework: z.enum(TestFramework),
   testSuffix: z.enum(TestSuffix),

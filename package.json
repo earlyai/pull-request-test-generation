@@ -42,7 +42,7 @@
     "@actions/core": "^1.11.1",
     "@actions/github": "^6.0.1",
     "@earlyai/core": "^1.5.0",
-    "@earlyai/ts-agent": "^0.6.1",
+    "@earlyai/ts-agent": "^0.8.0",
     "axios": "^1.11.0",
     "axios-retry": "^4.5.0",
     "inversify": "^7.9.1",
