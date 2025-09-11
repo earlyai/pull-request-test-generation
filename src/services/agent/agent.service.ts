@@ -89,23 +89,21 @@ export class AgentService {
       const gitInfo = await this.gitService.getGitInfo();
       const prNumber = this.githubService.getPullRequestNumber();
 
-      if (isDefined(prNumber)) {
-        const workflowRunId = await this.apiService.logStartOperation(gitInfo, {
-          prNumber,
-        });
+      try {
+        if (isDefined(prNumber)) {
+          const workflowRunId = await this.apiService.logStartOperation(gitInfo, {
+            prNumber,
+          });
 
-        core.info("Successfully logged workflow start");
-        this.workflowRunId = workflowRunId;
-      } else {
-        const workflowRunId = await this.apiService.logStartOperation(gitInfo);
+          this.workflowRunId = workflowRunId;
+        } else {
+          const workflowRunId = await this.apiService.logStartOperation(gitInfo);
 
-        core.info("Successfully logged workflow start");
-        this.workflowRunId = workflowRunId;
-      }
+          this.workflowRunId = workflowRunId;
+        }
+      } catch {}
     } catch (error) {
-      core.warning(
-        "Failed to authenticate or log workflow start: " + (error instanceof Error ? error.message : "Unknown error"),
-      );
+      core.warning("Failed to authenticate:" + (error instanceof Error ? error.message : "Unknown error"));
       // Continue execution even if login fails
     }
   }
