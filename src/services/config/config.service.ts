@@ -28,9 +28,6 @@ export class ConfigService {
       // Get raw configuration values from GitHub Actions inputs
       const rawConfig = this.getRawConfigFromInputs();
 
-      core.setSecret(rawConfig.token);
-      core.setSecret(rawConfig.secretToken);
-
       // Validate using Zod schema (which handles defaults)
       const validatedConfig = ConfigSchema.parse(rawConfig);
 
