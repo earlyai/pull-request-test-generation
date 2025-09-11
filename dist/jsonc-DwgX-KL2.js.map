@@ -1,0 +1,1 @@
+{"version":3,"file":"jsonc-DwgX-KL2.js","names":[],"sources":["../node_modules/confbox/dist/jsonc.mjs"],"sourcesContent":["import\"./shared/confbox.DA7CpUDY.mjs\";export{p as parseJSONC,s as stringifyJSONC}from\"./shared/confbox.DnMsyigM.mjs\";\n"],"x_google_ignoreList":[0],"mappings":""}

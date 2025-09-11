@@ -1,2 +1,0 @@
-const e=require(`./chunk-BwrM4yoD.js`);require(`./confbox.DA7CpUDY-BJVjqbv3.js`);const t=require(`./confbox.DnMsyigM-CRKcv8wh.js`);var n=e.__esmMin((()=>{t.init_confbox_DnMsyigM()}));n(),exports.parseJSONC=t.h;
-//# sourceMappingURL=jsonc-B__ZikUx.js.map
