@@ -125,6 +125,15 @@ export class AgentService {
     core.setOutput("pre-coverage", this.initialCoverage);
     core.setOutput("post-coverage", this.initialCoverage);
     core.info(`Initial coverage: ${this.initialCoverage}%`);
+
+    if (isDefined(this.workflowRunId)) {
+      try {
+        await this.apiService.saveCoverageToWorkflow(this.workflowRunId, "before", coverageTree);
+        core.info("Successfully saved initial coverage to workflow run");
+      } catch (error) {
+        core.warning(`Failed to save initial coverage: ${error instanceof Error ? error.message : "Unknown error"}`);
+      }
+    }
   }
 
   /**
@@ -311,6 +320,15 @@ export class AgentService {
       core.info(`Final coverage: ${finalCoverage}%`);
     } else {
       core.info(`Coverage comparison: ${this.initialCoverage}% → ${finalCoverage}%`);
+    }
+
+    if (isDefined(this.workflowRunId)) {
+      try {
+        await this.apiService.saveCoverageToWorkflow(this.workflowRunId, "after", postCoverageTree);
+        core.info("Successfully saved final coverage to workflow run");
+      } catch (error) {
+        core.warning(`Failed to save final coverage: ${error instanceof Error ? error.message : "Unknown error"}`);
+      }
     }
   }
 
