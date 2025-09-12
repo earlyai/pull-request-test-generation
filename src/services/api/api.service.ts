@@ -3,6 +3,7 @@ import axiosRetry from "axios-retry";
 import { inject, injectable } from "inversify";
 
 import { isDefined } from "@earlyai/core";
+import { CoverageReport } from "@earlyai/ts-agent";
 
 import { ConfigService } from "@/services/config/config.service.js";
 import { GitInfo } from "@/services/git/git.types.js";
@@ -290,5 +291,18 @@ export class ApiService {
     };
 
     await this.patch(`api/v1/workflows/close/${workflowRunId}`, requestData);
+  }
+
+  public async saveCoverageToWorkflow(
+    workflowRunId: string,
+    type: "before" | "after",
+    coverage: CoverageReport,
+  ): Promise<void> {
+    const requestData = {
+      type,
+      coverage,
+    };
+
+    await this.patch(`api/v1/workflows/${workflowRunId}/coverage`, requestData);
   }
 }
