@@ -296,7 +296,9 @@ export class AgentService {
       testable: SerializedTestable;
     }[],
   ): Promise<unknown> {
-    return this.tsAgent.bulkGenerateTests(filteredTestablesResult);
+    return this.tsAgent.bulkGenerateTests(filteredTestablesResult, (testable) => {
+      core.info(`finished generating test for ${testable.testable.name}`);
+    });
   }
 
   /**
