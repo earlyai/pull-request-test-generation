@@ -121,7 +121,8 @@ export class AgentService {
     }
 
     // Store initial coverage for comparison
-    this.initialCoverage = coverageTree["/"]?.percentage ?? undefined;
+    // may be undefined if there are no tests
+    this.initialCoverage = coverageTree["/"]?.percentage ?? 0;
     core.setOutput("pre-coverage", this.initialCoverage);
     core.setOutput("post-coverage", this.initialCoverage);
     core.info(`Initial coverage: ${this.initialCoverage}%`);
@@ -296,7 +297,9 @@ export class AgentService {
       testable: SerializedTestable;
     }[],
   ): Promise<unknown> {
-    return this.tsAgent.bulkGenerateTests(filteredTestablesResult);
+    return this.tsAgent.bulkGenerateTests(filteredTestablesResult, (testable) => {
+      core.info(`finished generating test for ${testable.testable.name}`);
+    });
   }
 
   /**
