@@ -102,18 +102,14 @@ export class GitHubService implements IGitHubService {
    */
   private async retrieveChangedFiles(prNumber: number): Promise<ChangedFile[]> {
     try {
-      const response = await this.octokit.rest.pulls.listFiles({
+      const response = await this.octokit.paginate(this.octokit.rest.pulls.listFiles, {
         owner: this.context.repo.owner,
         repo: this.context.repo.repo,
         pull_number: prNumber,
-        per_page: 100, // Maximum allowed by GitHub API
+        per_page: 100,
       });
 
-      if (response.status !== 200) {
-        throw new Error(`GitHub API returned status ${response.status}`);
-      }
-
-      return response.data.map((file) => ({
+      return response.map((file) => ({
         path: file.filename,
         status: file.status as ChangedFile["status"],
         sha: file.sha,
