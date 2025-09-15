@@ -36,9 +36,9 @@ inputs:
     required: false
     default: '0'
   concurrency:
-    description: Number of concurrent processes (1-50)
+    description: Number of concurrent processes (1-4)
     required: false
-    default: '5'
+    default: '4'
   base-host:
     description: Base host for the API endpoint
     required: false
@@ -55,9 +55,9 @@ inputs:
     required: false
     default: 'true'
   max-testables:
-    description: Maximum number of testables to generate tests for (-1 for unlimited)
+    description: Maximum number of testables to generate tests for (0-30)
     required: false
-    default: '-1'
+    default: '30'
 
 outputs:
   pre-coverage:

@@ -266,7 +266,7 @@ export class AgentService {
       }
     }
 
-    if (maxTestables !== -1 && result.length > maxTestables) {
+    if (result.length > maxTestables) {
       core.info(`Limiting testables to ${maxTestables} (from ${result.length} total)`);
 
       return result.slice(0, maxTestables);
