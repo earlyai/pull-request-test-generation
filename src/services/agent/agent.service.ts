@@ -267,7 +267,9 @@ export class AgentService {
     }
 
     if (result.length > maxTestables) {
-      core.info(`Limiting testables to ${maxTestables} (from ${result.length} total)`);
+      core.warning(
+        `⚠️ Limited to ${maxTestables} functions: test generation was capped due to maximum function limit.`,
+      );
 
       return result.slice(0, maxTestables);
     }
