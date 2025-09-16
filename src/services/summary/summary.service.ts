@@ -76,13 +76,6 @@ export class SummaryService {
       );
     }
 
-    // Add coverage data
-    if (this.data.coverage) {
-      const { before, after } = this.data.coverage;
-
-      lines.push(`- Coverage: ${before}% → ${after}%`);
-    }
-
     // Add test generation data
     if (this.data.testGeneration) {
       const { generated } = this.data.testGeneration;
