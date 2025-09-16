@@ -266,8 +266,10 @@ export class AgentService {
       }
     }
 
-    if (maxTestables !== -1 && result.length > maxTestables) {
-      core.info(`Limiting testables to ${maxTestables} (from ${result.length} total)`);
+    if (result.length > maxTestables) {
+      core.warning(
+        `⚠️ Limited to ${maxTestables} functions: test generation was capped due to maximum function limit.`,
+      );
 
       return result.slice(0, maxTestables);
     }
