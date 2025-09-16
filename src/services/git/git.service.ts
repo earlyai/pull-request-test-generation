@@ -8,8 +8,16 @@ import { isDefined } from "@earlyai/core";
 
 import { CommitResult, GitInfo, IGitService } from "./git.types.js";
 
-const execAsync = promisify(exec);
+const rawExec = promisify(exec);
 
+async function execAsync(
+  command: string,
+  options: Record<string, unknown> = {},
+): Promise<{ stdout: string; stderr: string }> {
+  const workspace = process.env.GITHUB_WORKSPACE ?? process.cwd();
+
+  return await rawExec(command, { cwd: workspace, ...options });
+}
 /**
  * Service for gathering Git repository information
  */
@@ -189,6 +197,13 @@ export class GitService implements IGitService {
     };
   }
 
+  public async getEarlyFiles(): Promise<string[]> {
+    const { stdout: modifiedFiles } = await execAsync("git ls-files --others --exclude-standard --modified");
+    const files = modifiedFiles.trim().split("\n").filter(Boolean);
+
+    return files.filter((file) => file.includes(".early."));
+  }
+
   /**
    * Commits files that are both modified and match the .early. pattern
    * @returns Promise resolving to commit result with file count and error status
@@ -199,16 +214,15 @@ export class GitService implements IGitService {
       if (isDefined(branch)) {
         await execAsync(`git checkout ${branch}`);
       }
-      await execAsync('git config user.name "github-actions[bot]"');
-      await execAsync('git config user.email "github-actions[bot]@users.noreply.github.com"');
+      // await execAsync('git config user.name "github-actions[bot]"');
+      // await execAsync('git config user.email "github-actions[bot]@users.noreply.github.com"');
 
-      const { stdout: modifiedFiles } = await execAsync("git ls-files --others --exclude-standard --modified");
-      const files = modifiedFiles.trim().split("\n").filter(Boolean);
-
-      const earlyFiles = files.filter((file) => file.includes(".early."));
+      const earlyFiles = await this.getEarlyFiles();
 
       if (earlyFiles.length === 0) {
-        await execAsync('git commit --allow-empty -m "chore: add early catch tests [skip ci]"');
+        await execAsync(
+          'git commit --allow-empty -m "chore: add early catch tests [skip ci]" -c user.name="github-actions[bot]" -c user.email="github-actions[bot]@users.noreply.github.com"',
+        );
         core.info("No files to commit - created empty commit");
 
         return { committedFiles: [], error: "" };
@@ -218,7 +232,9 @@ export class GitService implements IGitService {
         await execAsync(`git add "${file}"`);
       }
 
-      await execAsync('git commit --no-verify -m "chore: add early-catch tests [skip ci]"');
+      await execAsync(
+        'git commit --no-verify -m "chore: add early-catch tests [skip ci]" -c user.name="github-actions[bot]" -c user.email="github-actions[bot]@users.noreply.github.com"',
+      );
 
       core.info(`Committed ${earlyFiles.length} files`);
 

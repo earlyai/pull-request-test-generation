@@ -22,9 +22,9 @@ export interface ChangedFile {
 export interface FilteredFilesResult {
   /** Array of filtered file paths */
   readonly files: readonly string[];
-  /** Total number of files processed */
+  /* total number of added, modified, and changed files */
   readonly totalProcessed: number;
-  /** Number of files that matched the filter criteria */
+  /** total number of testable candidates files (ts/js and not test files) */
   readonly filteredCount: number;
 }
 
@@ -60,6 +60,13 @@ export interface IGitHubService {
    * @returns Pull request number or null if not in PR context
    */
   getPullRequestNumber(): number | null;
+
+  /**
+   * Adds a comment to the current pull request
+   * @param content The markdown content to post as a comment
+   * @returns Promise that resolves when comment is posted
+   */
+  addPRComment(content: string): Promise<void>;
 }
 
 /**

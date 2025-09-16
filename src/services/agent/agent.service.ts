@@ -14,6 +14,7 @@ import { FilteredTestable, FilteredTestablesResult } from "../coverage-analysis/
 import { GitService } from "../git/git.service.js";
 import { ChangedFilesResult, ChangedFilesService } from "../github/changed-files.service.js";
 import { GitHubService } from "../github/github.service.js";
+import { SummaryService } from "../summary/summary.service.js";
 
 /**
  * Agent service that orchestrates all other services and implements business flows
@@ -29,6 +30,7 @@ export class AgentService {
     @inject(ChangedFilesService)
     private readonly changedFilesService: ChangedFilesService,
     @inject(GitHubService) private readonly githubService: GitHubService,
+    @inject(SummaryService) private readonly summaryService: SummaryService,
     @inject(TYPES.TSAgent) private readonly tsAgent: ITSAgent,
   ) {}
 
@@ -56,8 +58,16 @@ export class AgentService {
       // Step 4: Generate tests
       await this.generateTests(filteredTestablesResult);
 
+      const earlyFiles = await this.gitService.getEarlyFiles();
+
+      this.summaryService.setTestGenerationData(earlyFiles.length);
+
       // Step 5: Commit files (if auto-commit is enabled)
-      if (this.configService.getConfigValue("autoCommit")) {
+      const isAutoCommitEnabled = this.configService.getConfigValue("autoCommit");
+
+      this.summaryService.setAutoCommitStatus(isAutoCommitEnabled);
+
+      if (isAutoCommitEnabled) {
         const refName = this.githubService.getRefName();
 
         await this.gitService.commitFiles(refName);
@@ -71,7 +81,9 @@ export class AgentService {
       core.error(`Agent flow failed: ${error instanceof Error ? error.message : "Unknown error"}`);
       throw error;
     } finally {
-      // Always log end of operation
+      // Always log end of operation and summary
+      await this.summaryService.addToJobSummary();
+      await this.githubService.addPRComment(this.summaryService.generateMarkdownSummary());
       await this.logEndOperation();
     }
   }
@@ -126,6 +138,7 @@ export class AgentService {
     core.setOutput("pre-coverage", this.initialCoverage);
     core.setOutput("post-coverage", this.initialCoverage);
     core.info(`Initial coverage: ${this.initialCoverage}%`);
+    this.summaryService.setCoverageData(this.initialCoverage, this.initialCoverage);
 
     if (isDefined(this.workflowRunId)) {
       try {
@@ -162,8 +175,17 @@ export class AgentService {
       const filteredTestablesMap = this.createFilteredTestablesMap(filteredTestables.testables);
 
       const config = this.configService.getConfig();
+      const testables = this.filterAndLimitResults(allTestables, filteredTestablesMap, config.maxTestables);
 
-      return this.filterAndLimitResults(allTestables, filteredTestablesMap, config.maxTestables);
+      // Set data in summary service
+      this.summaryService.setChangedFilesData({
+        changedFilesCount: changedFilesData.totalProcessed,
+        candidateFilesCount: changedFilesData.filteredCount,
+        functionCount: filteredTestables.totalAnalyzed,
+        testablesToGenerateCount: testables.length,
+      });
+
+      return testables;
     } catch (error) {
       core.warning(`Error analyzing changed files: ${error instanceof Error ? error.message : "Unknown error"}`);
 
@@ -267,9 +289,10 @@ export class AgentService {
     }
 
     if (result.length > maxTestables) {
-      core.warning(
-        `⚠️ Limited to ${maxTestables} functions: test generation was capped due to maximum function limit.`,
-      );
+      const warningMessage = `Limited to ${maxTestables} functions: test generation was capped due to maximum function limit.`;
+
+      core.warning(`⚠️ ${warningMessage}`);
+      this.summaryService.addWarning(warningMessage);
 
       return result.slice(0, maxTestables);
     }
@@ -317,16 +340,17 @@ export class AgentService {
     }
 
     // Set post-coverage output
-    const finalCoverage = postCoverageTree["/"]?.percentage;
+    const finalCoverage = postCoverageTree["/"]?.percentage ?? 0;
 
     core.setOutput("post-coverage", finalCoverage);
-    // Log coverage comparison
+
+    // Set coverage data in summary service
     if (isDefined(this.initialCoverage)) {
+      this.summaryService.setCoverageData(this.initialCoverage, finalCoverage);
       core.info(`Final coverage: ${finalCoverage}%`);
     } else {
       core.info(`Coverage comparison: ${this.initialCoverage}% → ${finalCoverage}%`);
     }
-
     if (isDefined(this.workflowRunId)) {
       try {
         await this.apiService.saveCoverageToWorkflow(this.workflowRunId, "after", postCoverageTree);
