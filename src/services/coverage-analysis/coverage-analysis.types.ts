@@ -28,9 +28,9 @@ export interface FilteredTestablesResult {
   readonly totalAnalyzed: number;
   /** Number of testables that met the filtering criteria */
   readonly filteredCount: number;
-  /** Number of changed files that had coverage data */
+  /** Number of changed files that had coverage data in tree */
   readonly filesWithCoverage: number;
-  /** Number of changed files without coverage data */
+  /** Number of changed files without coverage data in tree */
   readonly filesWithoutCoverage: number;
 }
 

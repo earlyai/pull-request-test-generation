@@ -74,7 +74,9 @@ export class GitHubService implements IGitHubService {
 
       core.info(`Retrieving changed files for pull request #${prNumber}`);
 
+      // Retrieve added, modified, and changed files
       const changedFiles = await this.retrieveChangedFiles(prNumber);
+      //filter out test files and  non ts/js files.
       const filteredFiles = this.filterFiles(changedFiles, filterConfig);
 
       const result: FilteredFilesResult = {
@@ -109,12 +111,14 @@ export class GitHubService implements IGitHubService {
         per_page: 100,
       });
 
-      return response.map((file) => ({
-        path: file.filename,
-        status: file.status as ChangedFile["status"],
-        sha: file.sha,
-        filename: file.filename.split("/").pop() ?? file.filename,
-      }));
+      return response
+        .filter((file) => ["modified", "added", "changed"].includes(file.status))
+        .map((file) => ({
+          path: file.filename,
+          status: file.status as ChangedFile["status"],
+          sha: file.sha,
+          filename: file.filename.split("/").pop() ?? file.filename,
+        }));
     } catch (error) {
       if (error instanceof Error) {
         if (error.message.includes("rate limit")) {
@@ -127,7 +131,7 @@ export class GitHubService implements IGitHubService {
   }
 
   /**
-   * Filters the changed files based on the provided configuration
+   * Filters the changed files based on extension and exclude patterns.
    * @param changedFiles Array of changed files to filter
    * @param filterConfig Optional configuration for file filtering
    * @returns Array of filtered file paths
@@ -154,6 +158,44 @@ export class GitHubService implements IGitHubService {
         return !shouldExclude;
       })
       .map((file) => file.path);
+  }
+
+  /**
+   * Adds a comment to the current pull request
+   * @param content The markdown content to post as a comment
+   * @returns Promise that resolves when comment is posted
+   */
+  public async addPRComment(content: string): Promise<void> {
+    try {
+      if (!this.isPullRequestContext()) {
+        core.info("Not running in pull request context, skipping PR comment");
+
+        return;
+      }
+
+      const prNumber = this.getPullRequestNumber();
+
+      if (!isDefined(prNumber)) {
+        core.warning("Unable to determine pull request number, skipping PR comment");
+
+        return;
+      }
+
+      core.info(`Adding comment to pull request #${prNumber}`);
+
+      await this.octokit.rest.issues.createComment({
+        owner: this.context.repo.owner,
+        repo: this.context.repo.repo,
+        issue_number: prNumber,
+        body: content,
+      });
+
+      core.info("Successfully added comment to pull request");
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+
+      core.warning(`Failed to add PR comment: ${errorMessage}`);
+    }
   }
 
   public getRefName(): string | undefined {

@@ -4,11 +4,11 @@ import * as core from "@actions/core";
 import { isEmpty } from "@earlyai/core";
 import { RequestSource } from "@earlyai/ts-agent";
 
-import type { Config } from "./config.types";
-import { ConfigSchema } from "./config.types";
+import type { Config, ConfigInterface } from "./config.types.js";
+import { ConfigSchema } from "./config.types.js";
 
 @injectable("Singleton")
-export class ConfigService {
+export class ConfigService implements ConfigInterface {
   private readonly config: Config;
 
   constructor() {
