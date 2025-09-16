@@ -99,6 +99,8 @@ export class AgentService {
 
       // Get Git information and log start of operation
       const gitInfo = await this.gitService.getGitInfo();
+
+      core.debug(`Git info: ${JSON.stringify(gitInfo)}`);
       const prNumber = this.githubService.getPullRequestNumber();
 
       try {

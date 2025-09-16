@@ -43,3 +43,8 @@ export interface CommitResult {
   /** Error message if an error occurred, empty string if successful */
   readonly error: string;
 }
+
+export interface ConfigInterface {
+  getConfig(): Config;
+  getConfigValue<K extends keyof Config>(key: K): Config[K];
+}

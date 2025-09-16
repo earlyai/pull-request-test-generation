@@ -6,6 +6,8 @@ import { injectable } from "inversify";
 import * as core from "@actions/core";
 import { isDefined } from "@earlyai/core";
 
+import { getConfigService } from "@/utils/config-factory.js";
+
 import { CommitResult, GitInfo, IGitService } from "./git.types.js";
 
 const rawExec = promisify(exec);
@@ -14,9 +16,10 @@ async function execAsync(
   command: string,
   options: Record<string, unknown> = {},
 ): Promise<{ stdout: string; stderr: string }> {
-  const workspace = process.env.GITHUB_WORKSPACE ?? process.cwd();
+  const configService = getConfigService();
+  const config = configService.getConfig();
 
-  return await rawExec(command, { cwd: workspace, ...options });
+  return await rawExec(command, { cwd: config.rootPath, ...options });
 }
 /**
  * Service for gathering Git repository information
