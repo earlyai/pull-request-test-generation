@@ -1,5 +1,10 @@
 {
   "name": "typescript-action",
+  "main": "dist/index.js",
+  "files": [
+    "dist/**",
+    "action.yml"
+  ],
   "description": "GitHub Actions TypeScript template",
   "version": "0.0.0",
   "author": "",
