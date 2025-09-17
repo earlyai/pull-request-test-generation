@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.1](https://github.com/earlyai/agent/compare/v0.0.1...v0.0.1) (2025-09-17)
+
+
+### Miscellaneous Chores
+
+* release 0.0.1 ([2bb7e94](https://github.com/earlyai/agent/commit/2bb7e947e960d79000a1c5e3734daa02cf4ee493))
+
 ## 0.0.1 (2025-09-17)
 
 
