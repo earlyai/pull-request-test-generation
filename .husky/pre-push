@@ -5,7 +5,7 @@
 npm run build
 
 # checking if dist folder is changed
-set -euo pipefail
+set -euo
 
 if ! git diff --quiet --exit-code -- dist; then
   echo "There are changes in dist/ (unstaged)."
