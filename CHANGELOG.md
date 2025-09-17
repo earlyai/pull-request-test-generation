@@ -5,6 +5,14 @@
 
 ### Miscellaneous Chores
 
+* release 0.0.1 ([a1c2e50](https://github.com/earlyai/agent/commit/a1c2e50c5aae55e91404b634c11abc0ed7c7e39f))
+* release 0.0.1 ([2bb7e94](https://github.com/earlyai/agent/commit/2bb7e947e960d79000a1c5e3734daa02cf4ee493))
+
+## [0.0.1](https://github.com/earlyai/agent/compare/v0.0.1...v0.0.1) (2025-09-17)
+
+
+### Miscellaneous Chores
+
 * release 0.0.1 ([2bb7e94](https://github.com/earlyai/agent/commit/2bb7e947e960d79000a1c5e3734daa02cf4ee493))
 
 ## 0.0.1 (2025-09-17)
