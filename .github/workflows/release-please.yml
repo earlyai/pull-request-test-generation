@@ -44,15 +44,9 @@ jobs:
       contents: write
       packages: read
     steps:
-      - name: Parse PR object
-        id: parse-pr
-        run: |
-          echo "pr_json='${{ needs.release-please.outputs.pr }}'" >> $GITHUB_OUTPUT
-          echo "head_ref=$(echo '${{ needs.release-please.outputs.pr }}' | jq -r '.head.ref')" >> $GITHUB_OUTPUT
-
       - uses: actions/checkout@v5
         with:
-          ref: ${{ steps.parse-pr.outputs.head_ref }}
+          ref: ${{ fromJson(needs.release-please.outputs.pr).headBranchName }}
 
       - name: Authenticate npm
         run: |
@@ -74,7 +68,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_message: "build: update dist for release"
-          branch: ${{ steps.parse-pr.outputs.head_ref }}
+          branch: ${{ fromJson(needs.release-please.outputs.pr).head.ref }}
           file_pattern: |
             dist/**
 
