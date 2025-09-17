@@ -64,7 +64,7 @@ jobs:
         uses: EndBug/add-and-commit@v9
         with:
           remove: |
-            . ':(exclude)dist' ':(exclude)action.yml'
+            * ':(exclude)dist' ':(exclude)action.yml'
           add: |
             dist/**
             action.yml
