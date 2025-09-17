@@ -1,0 +1,44 @@
+name: build dist on release PR
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - master
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    if: startsWith(github.head_ref, 'release-please--')
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Authenticate npm
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
+          echo "@earlyai:registry=https://npm.pkg.github.com" >> ~/.npmrc
+  
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+      
+      - name: Build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Commit built files
+        uses: stefanzweifel/git-auto-commit-action@v6
+        with:
+          commit_message: "build: update dist for release"
+          branch: ${{ github.head_ref }}
+          file_pattern: |
+            dist/**
