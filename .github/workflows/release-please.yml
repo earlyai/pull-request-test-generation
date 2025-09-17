@@ -71,25 +71,5 @@ jobs:
           message: "Release artifacts for ${{ needs.release-please.outputs.tag }}"
           push: false
           default_author: github_actions
-        
-      - name: Move release tag to minimal commit
-        uses: richardsimko/update-tag@v1
-        with:
-          tag_name: ${{ needs.release-please.outputs.tag }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
-        # 3) OPTIONAL: also move vX and vX.Y moving tags
-      - name: Move major/minor tags to same commit
-        uses: richardsimko/update-tag@v1
-        with:
-          tag_name: v${{ needs.release-please.outputs.major }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
-      - name: Move minor tag
-        uses: richardsimko/update-tag@v1
-        with:
-          tag_name: v${{ needs.release-please.outputs.major }}.${{ needs.release-please.outputs.minor }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ needs.release-please.outputs.tag }}
+          tag_push: '--force'
