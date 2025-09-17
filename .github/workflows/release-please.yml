@@ -71,5 +71,5 @@ jobs:
           message: "Release artifacts for ${{ needs.release-please.outputs.tag }}"
           push: false
           default_author: github_actions
-          tag: ${{ needs.release-please.outputs.tag }}
+          tag: ${{ needs.release-please.outputs.tag }} --force
           tag_push: '--force'
