@@ -1,0 +1,36 @@
+name: early-catch
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  early-catch:
+    permissions:
+      contents: write
+      pull-requests: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+
+      - name: Authenticate npm
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
+          echo "@earlyai:registry=https://npm.pkg.github.com" >> ~/.npmrc
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline
+
+      - name: Generate Tests
+        uses: earlyai/pull-request-test-generation@v1
+        with:
+          api-key: ${{ secrets.EARLY_API_KEY }}
+          token: ${{ secrets.GITHUB_TOKEN }}
