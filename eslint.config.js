@@ -212,7 +212,7 @@ export default [
       "sonarjs/prefer-regexp-exec": "off",
     },
   },
-  globalIgnores(["**/*.js", "dist", "tsdown.config.ts", "jest.config.ts"]),
+  globalIgnores(["**/*.js", "dist", "tsdown.config.ts", "jest.config.ts", "__mocks__/**"]),
   {
     files: ["**/*.test*"],
 
