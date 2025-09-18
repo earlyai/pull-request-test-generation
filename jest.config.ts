@@ -6,7 +6,10 @@ const config: Config = {
   testMatch: ["**/*.(spec|test).(ts|tsx)", "**/*.early.ts"],
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
+    "^@earlyai/ts-agent$": "<rootDir>/src/__mocks__/@earlyai/ts-agent.ts",
+    "^@actions/core$": "<rootDir>/src/__mocks__/@actions/core.ts",
   },
+
   collectCoverage: true,
   collectCoverageFrom: ["src/**/*.ts"],
   coveragePathIgnorePatterns: ["/node_modules/", ".*\\.early\\.ts$"],

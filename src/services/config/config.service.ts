@@ -6,7 +6,7 @@ import { RequestSource } from "@earlyai/ts-agent";
 
 import type { Config, ConfigInterface } from "./config.types.js";
 import { ConfigSchema } from "./config.types.js";
-
+//add tests
 @injectable("Singleton")
 export class ConfigService implements ConfigInterface {
   private readonly config: Config;
