@@ -20,12 +20,15 @@ export const ConfigSchema = z.object({
   testSuffix: z.enum(TestSuffix),
   testFileName: z.enum(TestFileName),
   calculateCoverage: z.enum(CalculateCoverageOption),
-  coverageThreshold: z.coerce.number().min(COVERAGE_THRESHOLD.MIN).max(COVERAGE_THRESHOLD.MAX),
+  coverageThreshold: z.coerce
+    .number()
+    .min(COVERAGE_THRESHOLD.MIN)
+    .max(COVERAGE_THRESHOLD.MAX)
+    .default(COVERAGE_THRESHOLD.DEFAULT),
   requestSource: z.literal(RequestSource.CLI),
   concurrency: z.coerce.number().min(CONCURRENCY.MIN).max(CONCURRENCY.MAX),
   backendURL: z.string(),
   secretToken: z.string(),
-  modelName: z.string().optional(),
   // github action fields
   githubToken: z.string(),
   autoCommit: z.string().transform((value) => value === "true"),

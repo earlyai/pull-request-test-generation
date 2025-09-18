@@ -50,18 +50,15 @@ export class ConfigService implements ConfigInterface {
     const config = {
       testStructure: core.getInput("test-structure"),
       testFramework: core.getInput("test-framework"),
-      testSuffix: core.getInput("test-suffix"),
-      testFileName: core.getInput("test-file-name"),
+      testSuffix: core.getInput("test-file-suffix"),
+      testFileName: core.getInput("test-file-naming"),
       calculateCoverage: core.getInput("calculate-coverage"),
-      coverageThreshold: core.getInput("coverage-threshold"),
       requestSource: RequestSource.CLI,
-      concurrency: core.getInput("concurrency"),
+      concurrency: core.getInput("max-concurrency"),
       backendURL: core.getInput("base-host"),
       secretToken: core.getInput("api-key"),
       autoCommit: core.getInput("auto-commit"),
       githubToken: core.getInput("token") || (process.env.GITHUB_TOKEN as string),
-      modelName: core.getInput("model-name"),
-      maxTestables: core.getInput("max-testables"),
     };
 
     return Object.fromEntries(Object.entries(config).filter(([, value]) => !isEmpty(value)));

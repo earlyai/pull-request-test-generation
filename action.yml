@@ -2,10 +2,9 @@ name: TypeScript Agent Action
 description: GitHub Action for TypeScript analysis and PR file detection
 author: earlyai
 
-# Add your action's branding here. This will appear on the GitHub Marketplace.
 branding:
-  icon: heart
-  color: red
+  icon: edit
+  color: blue
 
 inputs:
   api-key:
@@ -19,11 +18,11 @@ inputs:
     description: Test framework to use (jest, mocha, or vitest)
     required: false
     default: 'jest'
-  test-suffix:
+  test-file-suffix:
     description: Test file suffix (spec or test)
     required: false
-    default: 'spec'
-  test-file-name:
+    default: 'test'
+  test-file-naming:
     description: Test file naming convention (camelCase or kebabCase)
     required: false
     default: 'camelCase'
@@ -31,12 +30,8 @@ inputs:
     description: Whether to calculate coverage (on or off)
     required: false
     default: 'on'
-  coverage-threshold:
-    description: Coverage threshold percentage (0-100)
-    required: false
-    default: '0'
-  concurrency:
-    description: Number of concurrent processes (1-4)
+  max-concurrency:
+    description: Number of concurrent workers (1-4)
     required: false
     default: '4'
   base-host:
@@ -47,17 +42,10 @@ inputs:
     description:
       GitHub token for accessing PR information (defaults to GITHUB_TOKEN)
     required: false
-  model-name:
-    description: Model name to use for analysis
-    required: false
   auto-commit:
     description: Whether to auto-commit files (true or false)
     required: false
     default: 'true'
-  max-testables:
-    description: Maximum number of testables to generate tests for (0-30)
-    required: false
-    default: '30'
 
 outputs:
   pre-coverage:
