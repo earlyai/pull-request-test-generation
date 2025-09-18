@@ -1,0 +1,58 @@
+name: TypeScript Agent Action
+description: GitHub Action for TypeScript analysis and PR file detection
+author: earlyai
+
+branding:
+  icon: edit
+  color: blue
+
+inputs:
+  api-key:
+    description: API key for authenticating with the backend service
+    required: true
+  test-structure:
+    description: Test file structure (siblingFolder or rootFolder)
+    required: false
+    default: 'siblingFolder'
+  test-framework:
+    description: Test framework to use (jest, mocha, or vitest)
+    required: false
+    default: 'jest'
+  test-file-suffix:
+    description: Test file suffix (spec or test)
+    required: false
+    default: 'test'
+  test-file-naming:
+    description: Test file naming convention (camelCase or kebabCase)
+    required: false
+    default: 'camelCase'
+  calculate-coverage:
+    description: Whether to calculate coverage (on or off)
+    required: false
+    default: 'on'
+  max-concurrency:
+    description: Number of concurrent workers (1-4)
+    required: false
+    default: '4'
+  base-host:
+    description: Base host for the API endpoint
+    required: false
+    default: 'https://api.startearly.ai'
+  token:
+    description:
+      GitHub token for accessing PR information (defaults to GITHUB_TOKEN)
+    required: false
+  auto-commit:
+    description: Whether to auto-commit files (true or false)
+    required: false
+    default: 'true'
+
+outputs:
+  pre-coverage:
+    description: Coverage data before analysis
+  post-coverage:
+    description: Coverage data after analysis
+
+runs:
+  using: node20
+  main: dist/index.js

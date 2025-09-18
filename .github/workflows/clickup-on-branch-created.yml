@@ -1,0 +1,8 @@
+name: Clickup on PR Create
+on: create
+
+jobs:
+  update-clickup:
+    uses: earlyai/gha-workflows/.github/workflows/clickup-on-branch-created.yml@master
+    secrets:
+      CLICKUP_API_KEY: ${{ secrets.CLICKUP_API_KEY }}
