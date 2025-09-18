@@ -1,0 +1,3 @@
+const e=require(`./chunk-BwrM4yoD.js`),t=require(`./esm-DiJduMOq.js`),n=require(`./execAsync-Cm0NEWwI.js`);var r=e.__commonJSMin((exports=>{Object.defineProperty(exports,`__esModule`,{value:!0}),exports.getMachineId=void 0;let i=n.require_execAsync(),a=(t.init_esm(),e.__toCommonJS(t.esm_exports));async function o(){try{let e=await(0,i.execAsync)(`ioreg -rd1 -c "IOPlatformExpertDevice"`),t=e.stdout.split(`
+`).find(e=>e.includes(`IOPlatformUUID`));if(!t)return;let n=t.split(`" = "`);if(n.length===2)return n[1].slice(0,-1)}catch(e){a.diag.debug(`error reading machine id: ${e}`)}}exports.getMachineId=o}));Object.defineProperty(exports,`default`,{enumerable:!0,get:function(){return r()}});
+//# sourceMappingURL=getMachineId-darwin-DGXDMKWv.js.map
