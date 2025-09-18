@@ -1,0 +1,2 @@
+const e=require(`./chunk-BwrM4yoD.js`),t=require(`./esm-DiJduMOq.js`);var n=e.__commonJSMin((exports=>{Object.defineProperty(exports,`__esModule`,{value:!0}),exports.getMachineId=void 0;let r=(t.init_esm(),e.__toCommonJS(t.esm_exports));async function i(){r.diag.debug(`could not read machine-id: unsupported platform`)}exports.getMachineId=i}));Object.defineProperty(exports,`default`,{enumerable:!0,get:function(){return n()}});
+//# sourceMappingURL=getMachineId-unsupported-TL0wHAZr.js.map
