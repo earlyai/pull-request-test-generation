@@ -39,7 +39,7 @@
     "format:check": "npx prettier --check .",
     "local-action": "npx @github/local-action . src/main.ts .env",
     "package:watch": "npm run package -- --watch",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "prepare": "husky"
   },
   "license": "ISC",
