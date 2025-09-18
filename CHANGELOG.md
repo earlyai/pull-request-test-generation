@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.2](https://github.com/earlyai/agent/compare/v0.0.1...v0.0.2) (2025-09-18)
+
+
+### Bug Fixes
+
+* github exposed parameters ([#43](https://github.com/earlyai/agent/issues/43)) ([8bc86fd](https://github.com/earlyai/agent/commit/8bc86fd6fb084386eafab66884188a950d60fa4c))
+
 ## [0.0.1](https://github.com/earlyai/agent/compare/v0.0.1...v0.0.1) (2025-09-17)
 
 
